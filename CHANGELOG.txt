@@ -1,7 +1,9 @@
 0.0.2 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- New Class for SQL Connections under rds/connection
+- deletes utils.sql
+- move AWSJdbc to rds
 
 
 0.0.1 (2020-03-26)

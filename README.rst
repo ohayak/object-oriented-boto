@@ -79,6 +79,10 @@ Before submitting your code make sure to run ``black`` code formatter using this
 
 And your test coverage is above 80%.
 
+.. code-block:: sh
+
+    $ tox -e tests
+
 Submitting a release
 ~~~~~~~~~~~~~~~~~~~~
 Use ``zest.releaser`` package to manage verions, changelog, and releases.
