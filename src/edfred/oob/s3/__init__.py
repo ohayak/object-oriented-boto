@@ -1,0 +1,109 @@
+from typing import List, ClassVar, Tuple, Union, IO
+from dataclasses import dataclass, InitVar, field, asdict
+from io import BytesIO
+from boto3 import client, Session
+from edfred.oob.utils import underscore_namedtuple
+
+
+@dataclass
+class S3Base:
+    client: ClassVar[Session] = client("s3")
+
+
+@dataclass
+class S3Bucket(S3Base):
+    arn: str = None
+    url: str = field(default=None, init=False)
+    name: str = None
+    region: str = None
+
+    def __post_init__(self):
+        arn = self.arn
+        name = self.name
+
+        if arn and name:
+            raise AttributeError("BucketManager can be initializied using either arn or bucket name not both.")
+        if arn:
+            self.name = arn.split(":")[-1]
+        else:
+            self.arn = f"arn:aws:s3:::{name}"
+
+        self.region = self.client.get_bucket_location(Bucket=self.name)["LocationConstraint"]
+
+    def head(self):
+        self.client.head_bucket(Bucket=self.name)
+
+    def upload_file(self, file: Union[str, IO[bytes]], dest):
+        if isinstance(file, str):
+            self.client.upload_file(file, self.name, dest)
+        else:
+            self.client.upload_fileobj(file, self.name, dest)
+        return S3Object(bucket_name=self.name, key=dest)
+
+    def get_object(self, object_key):
+        return S3Object(bucket_name=self.name, key=object_key)
+
+    def list_keys(self, prefix=""):
+        kwargs = {"Bucket": self.name, "Prefix": prefix}
+        object_list = self.client.list_objects_v2(**kwargs).get("Contents", [])
+        return list(o["Key"] for o in object_list)
+
+    def delete_object(self, key):
+        return self.client.delete_object(Bucket=self.name, Key=key)
+
+    def delete_directory(self, prefix):
+        for key in self.list_keys(prefix):
+            if prefix in key:
+                self.delete_object(key)
+
+
+@dataclass
+class S3Object(S3Base):
+    bucket_name: str = None
+    key: str = None
+    region: str = field(default=None, init=False)
+    filename: str = field(default=None, init=False)
+    prefix: str = field(default=None, init=False)
+    suffix: str = field(default=None, init=False)
+    is_folder: bool = field(default=None, init=False)
+    _attributes: Tuple = field(default=None, init=False)
+
+    def __post_init__(self):
+        key_split = self.key.split("/")
+        self.is_folder = self.key.endswith("/")
+        self.filename = key_split[-1]
+        self.prefix = key_split[:-1]
+        self.suffix = key_split[-1].split(".")[-1]
+        self.attributes
+
+    @property
+    def attributes(self):
+        self._attributes = underscore_namedtuple(
+            "ObjectHead", self.client.head_object(Bucket=self.bucket_name, Key=self.key)
+        )
+        return self._attributes
+
+    def download_fileobj(self) -> BytesIO:
+        fileobj = BytesIO()
+        self.client.download_fileobj(self.bucket_name, self.key, fileobj)
+        fileobj.seek(0)
+        return fileobj
+
+    def copy_to(self, bucket, key):
+        self.client.copy(Bucket=bucket, Key=key, CopySource={"Bucket": self.bucket_name, "Key": self.key})
+        new = S3Object(bucket, key)
+        return new
+
+    def move_to(self, bucket, key):
+        new = self.copy_to(bucket, key)
+        self.delete()
+        return new
+
+    def delete(self):
+        return self.client.delete_object(Bucket=self.bucket_name, Key=self.key)
+
+    def download_to(self, dest):
+        return self.client.download_file(self.bucket_name, self.key, dest)
+
+    def restore_object(self):
+        return self.client.restore_object(self.bucket_name, self.key)
