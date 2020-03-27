@@ -8,6 +8,7 @@ from . import Event, Handler
 from edfred.oob.s3 import S3Object, S3Bucket
 from edfred.oob.utils import underscore_namedtuple
 from edfred.oob.messaging.sqs import SQSQueue, SQSMessage
+from urllib.parse import unquote_plus
 
 
 @dataclass
@@ -44,7 +45,9 @@ class S3Event(Event):
         """Initialize the class."""
         s3_event = payload["Records"][0]
         self.bucket = S3Bucket(arn=s3_event["s3"]["bucket"]["arn"])
-        self.s3object = S3Object(bucket_name=self.bucket.name, key=s3_event["s3"]["object"]["key"])
+        self.s3object = S3Object(
+            bucket_name=self.bucket.name, key=unquote_plus(payload["Records"][0]["s3"]["object"]["key"])
+        )
 
 
 @dataclass

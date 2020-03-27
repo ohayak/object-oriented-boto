@@ -4,6 +4,7 @@
 - New Class for SQL Connections under rds/connection
 - deletes utils.sql
 - move AWSJdbc to rds
+- add urlparse.unquote to S3Event key parsing 
 
 
 0.0.1 (2020-03-26)
