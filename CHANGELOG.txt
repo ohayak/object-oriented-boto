@@ -1,4 +1,4 @@
-0.0.2 (unreleased)
+0.0.2 (2020-03-30)
 ------------------
 
 - New Class for SQL Connections under rds/connection
