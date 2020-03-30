@@ -8,6 +8,7 @@ from . import Event, Handler
 from edfred.oob.s3 import S3Object, S3Bucket
 from edfred.oob.utils import underscore_namedtuple
 from edfred.oob.messaging.sqs import SQSQueue, SQSMessage
+from edfred.oob.messaging.sns import SNSTopic, SNSSubscription, SNSNotification
 from urllib.parse import unquote_plus
 
 
@@ -27,10 +28,33 @@ class SQSEvent(Event):
             body_md5=sqs_event.get("md5OfBody", None),
             region=sqs_event.get("awsRegion", None),
             attributes=underscore_namedtuple("Attributes", sqs_event.get("attributes", {})),
-            message_attributes=sqs_event.get("messageAttributes", {}),
+            message_attributes_schema=sqs_event.get("messageAttributes", {}),
             queue_url=self.queue.url,
             id=sqs_event.get("messageId", None),
             receipt_handle=sqs_event.get("receiptHandle", None),
+        )
+
+
+@dataclass
+class SNSEvent(Event):
+    """SNS Notification Event class."""
+
+    subscription: SNSSubscription = field(init=False)
+    notification: SNSNotification = field(init=False)
+
+    def parse(self, payload, context):
+        """Initialize the class."""
+        sns_event = payload["Records"][0]["Sns"]
+        self.topic = SNSTopic(arn=sns_event.get("TopicArn"), subject=sns_event.get("Subject"))
+        self.subscription = SNSSubscription(payload["Records"][0]["EventSubscriptionArn"])
+        self.notification = SNSNotification(
+            timestamp=sns_event.get("Timestamp"),
+            signature=sns_event.get("Signature"),
+            signing_url=unquote_plus(sns_event.get("SigningCertUrl")),
+            message_id=sns_event.get("MessageId"),
+            message=sns_event.get("Message"),
+            type=sns_event.get("Type"),
+            message_attributes_schema=sns_event.get("MessageAttributes", {}),
         )
 
 

@@ -1,8 +1,8 @@
 from dataclasses import dataclass, InitVar, field, asdict
 from typing import ClassVar, List, Dict, Tuple, Generator
 from boto3 import client, Session
-from . import MessageAttribute
 from edfred.oob.utils import underscore_namedtuple
+from . import MessageAttribute
 
 
 @dataclass
@@ -18,14 +18,27 @@ class SQSMessage(SQSBase):
     body_md5: str = None
     region: str = None
     attributes: Tuple = None
-    message_attributes: Dict = field(default_factory=dict)
-    message_attributes_schema: Dict = field(init=False)
+    message_attributes: Dict = None
+    message_attributes_schema: Dict = None
     id: str = None
     groupe_id: str = None
     sequence_number: str = None
 
     def __post_init__(self):
-        self.message_attributes_schema = {k: MessageAttribute(k, v).schema for k, v, in self.message_attributes.items()}
+        if self.message_attributes and not self.message_attributes_schema:
+            self.message_attributes_schema = {
+                k: MessageAttribute(k, v).schema for k, v, in self.message_attributes.items()
+            }
+        elif self.message_attributes_schema and not self.message_attributes:
+            self.message_attributes = {}
+            for k, v in self.message_attributes.items():
+                if "StringValue" in v:
+                    self.message_attributes[k] = v["StringValue"]
+                if "BinaryValue" in v:
+                    self.message_attributes[k] = v["BinaryValue"]
+        else:
+            self.message_attributes = {}
+            self.message_attributes_schema = {}
 
     @staticmethod
     def duplicate(queue_url: str, message: "SQSMessage"):

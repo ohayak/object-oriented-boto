@@ -32,3 +32,9 @@ def secretmanager():
 def sqs():
     with moto.mock_sqs():
         yield boto3.client("sqs")
+
+
+@pytest.fixture(scope="session")
+def sns():
+    with moto.mock_sqs():
+        yield boto3.client("sns")
