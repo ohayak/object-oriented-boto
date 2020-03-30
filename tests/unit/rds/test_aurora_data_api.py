@@ -9,13 +9,15 @@ logging.basicConfig(level=logging.INFO)
 logging.getLogger("aurora_data_api").setLevel(logging.DEBUG)
 logging.getLogger("urllib3.connectionpool").setLevel(logging.DEBUG)
 
+
 @pytest.mark.skip(reason="Tested by maintainer")
 class TestAuroraDataAPI(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.db_name = os.environ.get("AURORA_DB_NAME", __name__)
         with aurora_data_api.connect(database=cls.db_name) as conn, conn.cursor() as cur:
-            cur.execute("""
+            cur.execute(
+                """
                 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
                 DROP TABLE IF EXISTS aurora_data_api_test;
                 CREATE TABLE aurora_data_api_test (
@@ -23,11 +25,18 @@ class TestAuroraDataAPI(unittest.TestCase):
                     name TEXT,
                     doc JSONB DEFAULT '{}'
                 )
-            """)
-            cur.executemany("INSERT INTO aurora_data_api_test(name, doc) VALUES (:name, CAST(:doc AS JSONB))", [{
-                "name": "row{}".format(i),
-                "doc": json.dumps({"x": i, "y": str(i), "z": [i, i * i, i ** i if i < 512 else 0]})
-            } for i in range(2048)])
+            """
+            )
+            cur.executemany(
+                "INSERT INTO aurora_data_api_test(name, doc) VALUES (:name, CAST(:doc AS JSONB))",
+                [
+                    {
+                        "name": "row{}".format(i),
+                        "doc": json.dumps({"x": i, "y": str(i), "z": [i, i * i, i ** i if i < 512 else 0]}),
+                    }
+                    for i in range(2048)
+                ],
+            )
 
     @classmethod
     def tearDownClass(cls):
@@ -41,13 +50,13 @@ class TestAuroraDataAPI(unittest.TestCase):
 
     def test_iterators(self):
         with aurora_data_api.connect(database=self.db_name) as conn, conn.cursor() as cur:
-            cur.execute("select count(*) from aurora_data_api_test where pg_column_size(doc) < :s", dict(s=2**6))
+            cur.execute("select count(*) from aurora_data_api_test where pg_column_size(doc) < :s", dict(s=2 ** 6))
             self.assertEqual(cur.fetchone()[0], 0)
-            cur.execute("select count(*) from aurora_data_api_test where pg_column_size(doc) < :s", dict(s=2**7))
+            cur.execute("select count(*) from aurora_data_api_test where pg_column_size(doc) < :s", dict(s=2 ** 7))
             self.assertEqual(cur.fetchone()[0], 1594)
-            cur.execute("select count(*) from aurora_data_api_test where pg_column_size(doc) < :s", dict(s=2**8))
+            cur.execute("select count(*) from aurora_data_api_test where pg_column_size(doc) < :s", dict(s=2 ** 8))
             self.assertEqual(cur.fetchone()[0], 1697)
-            cur.execute("select count(*) from aurora_data_api_test where pg_column_size(doc) < :s", dict(s=2**10))
+            cur.execute("select count(*) from aurora_data_api_test where pg_column_size(doc) < :s", dict(s=2 ** 10))
             self.assertEqual(cur.fetchone()[0], 2048)
 
             with conn.cursor() as cursor:
@@ -55,15 +64,15 @@ class TestAuroraDataAPI(unittest.TestCase):
                 cursor.execute("select * from aurora_data_api_test")
                 for f in cursor:
                     if i == 0:
-                        self.assertEqual(f, (1, 'row0', '{"x": 0, "y": "0", "z": [0, 0, 1]}'))
+                        self.assertEqual(f, (1, "row0", '{"x": 0, "y": "0", "z": [0, 0, 1]}'))
                     i += 1
                 self.assertEqual(i, 2048)
 
                 cursor.execute("select * from aurora_data_api_test")
                 data = cursor.fetchall()
-                self.assertEqual(data[0], (1, 'row0', '{"x": 0, "y": "0", "z": [0, 0, 1]}'))
+                self.assertEqual(data[0], (1, "row0", '{"x": 0, "y": "0", "z": [0, 0, 1]}'))
                 self.assertEqual(data[-1][0], 2048)
-                self.assertEqual(data[-1][1], 'row2047')
+                self.assertEqual(data[-1][1], "row2047")
                 self.assertEqual(json.loads(data[-1][-1]), {"x": 2047, "y": str(2047), "z": [2047, 2047 * 2047, 0]})
                 self.assertEqual(len(data), 2048)
                 self.assertEqual(len(cursor.fetchall()), 0)
@@ -93,8 +102,9 @@ class TestAuroraDataAPI(unittest.TestCase):
             concat_args = ", ".join(["cast(doc as text)"] * 100)
             sql = sql_template.format(", ".join("concat({})".format(concat_args) for i in range(32)))
             cur.execute(sql)
-            with self.assertRaisesRegex(conn._client.exceptions.BadRequestException,
-                                        "Database response exceeded size limit"):
+            with self.assertRaisesRegex(
+                conn._client.exceptions.BadRequestException, "Database response exceeded size limit"
+            ):
                 cur.fetchall()
 
     def test_rowcount(self):
@@ -107,10 +117,16 @@ class TestAuroraDataAPI(unittest.TestCase):
             self.assertEqual(cur.rowcount, -1)
 
         with aurora_data_api.connect(database=self.db_name) as conn, conn.cursor() as cur:
-            cur.executemany("INSERT INTO aurora_data_api_test(name, doc) VALUES (:name, CAST(:doc AS JSONB))", [{
-                "name": "rowcount{}".format(i),
-                "doc": json.dumps({"x": i, "y": str(i), "z": [i, i * i, i ** i if i < 512 else 0]})
-            } for i in range(8)])
+            cur.executemany(
+                "INSERT INTO aurora_data_api_test(name, doc) VALUES (:name, CAST(:doc AS JSONB))",
+                [
+                    {
+                        "name": "rowcount{}".format(i),
+                        "doc": json.dumps({"x": i, "y": str(i), "z": [i, i * i, i ** i if i < 512 else 0]}),
+                    }
+                    for i in range(8)
+                ],
+            )
 
             cur.execute("UPDATE aurora_data_api_test SET doc = '{}' WHERE name like 'rowcount%'")
             self.assertEqual(cur.rowcount, 8)

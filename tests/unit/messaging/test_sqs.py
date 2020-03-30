@@ -19,29 +19,28 @@ def test_sqs_message():
             "ApproximateReceiveCount": "1",
             "SentTimestamp": "1545082649183",
             "SenderId": "AIDAIENQZJOLO23YVJ4VO",
-            "ApproximateFirstReceiveTimestamp": "1545082649185"
+            "ApproximateFirstReceiveTimestamp": "1545082649185",
         },
-        "messageAttributes": {
-            'oneWord': "CORONA",
-            'oneInt': 19,
-            'oneByte': b'bytes'
-        },
+        "messageAttributes": {"oneWord": "CORONA", "oneInt": 19, "oneByte": b"bytes"},
         "eventSource": "aws:sqs",
         "eventSourceARN": "arn:aws:sqs:eu-west-1:123456789012:my-queue",
-        "awsRegion": "eu-west-1"
+        "awsRegion": "eu-west-1",
     }
 
-    message_attributes_schema = {'oneInt': {'DataType': 'Number', 'StringValue': '19'},'oneWord': {'DataType': 'String', 'StringValue': 'CORONA'}, 'oneByte': {'DataType':'Binary', 'BinaryValue':b'bytes'}}
-    sqs = client('sqs', region_name='eu-west-1')
-    sqs.create_queue(QueueName='my-queue')
-    queue_url = sqs.get_queue_url(QueueName='my-queue', QueueOwnerAWSAccountId='123456789012').get("QueueUrl")
-
+    message_attributes_schema = {
+        "oneInt": {"DataType": "Number", "StringValue": "19"},
+        "oneWord": {"DataType": "String", "StringValue": "CORONA"},
+        "oneByte": {"DataType": "Binary", "BinaryValue": b"bytes"},
+    }
+    sqs = client("sqs", region_name="eu-west-1")
+    sqs.create_queue(QueueName="my-queue")
+    queue_url = sqs.get_queue_url(QueueName="my-queue", QueueOwnerAWSAccountId="123456789012").get("QueueUrl")
 
     message = SQSMessage(
         body=sqs_event.get("body", None),
         message_attributes=sqs_event.get("messageAttributes", {}),
         queue_url=queue_url,
-        receipt_handle=None
+        receipt_handle=None,
     )
 
     assert message.body == sqs_event.get("body", None)
@@ -49,25 +48,26 @@ def test_sqs_message():
     assert message.message_attributes_schema == message_attributes_schema
 
     message.send()
-    attributes = sqs.get_queue_attributes(QueueUrl=queue_url, AttributeNames=["All"])['Attributes']
-    assert attributes['ApproximateNumberOfMessages'] == '1'
+    attributes = sqs.get_queue_attributes(QueueUrl=queue_url, AttributeNames=["All"])["Attributes"]
+    assert attributes["ApproximateNumberOfMessages"] == "1"
     assert message.id
 
-    sqs_message_dict = sqs.receive_message(QueueUrl='my-queue')['Messages'][0]
-    message.receipt_handle = sqs_message_dict['ReceiptHandle']
-    assert sqs_message_dict['MD5OfBody'] == message.body_md5
+    sqs_message_dict = sqs.receive_message(QueueUrl="my-queue")["Messages"][0]
+    message.receipt_handle = sqs_message_dict["ReceiptHandle"]
+    assert sqs_message_dict["MD5OfBody"] == message.body_md5
 
     message.delete()
-    attributes = sqs.get_queue_attributes(QueueUrl=queue_url, AttributeNames=["All"])['Attributes']
-    assert attributes['ApproximateNumberOfMessages'] == '0'
+    attributes = sqs.get_queue_attributes(QueueUrl=queue_url, AttributeNames=["All"])["Attributes"]
+    assert attributes["ApproximateNumberOfMessages"] == "0"
+
 
 @mock_sqs
 def test_sqs_queue():
-    sqs = client('sqs', region_name='eu-west-1')
-    sqs.create_queue(QueueName='my-queue')
+    sqs = client("sqs", region_name="eu-west-1")
+    sqs.create_queue(QueueName="my-queue")
 
-    queue = SQSQueue(name='my-queue', account=os.getenv('AWS_ACCOUNT_ID'), region=os.getenv('AWS_DEFAULT_REGION'))
-    
+    queue = SQSQueue(name="my-queue", account=os.getenv("AWS_ACCOUNT_ID"), region=os.getenv("AWS_DEFAULT_REGION"))
+
     assert queue.arn == "arn:aws:sqs:eu-west-1:123456789012:my-queue"
 
     message1 = queue.send_message("message1")

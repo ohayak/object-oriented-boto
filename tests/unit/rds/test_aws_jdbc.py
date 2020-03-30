@@ -1,4 +1,4 @@
-from edfred.oob.utils import AWSJdbc
+from edfred.oob.rds import AWSJdbc
 
 
 def test_aws_jdbc():
