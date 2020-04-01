@@ -1,4 +1,4 @@
-0.0.3 (unreleased)
+0.0.3 (2020-04-01)
 ------------------
 
 - Limit to 10 messages batch sqs api calls (delete and change visibility)
