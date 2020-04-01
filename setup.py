@@ -51,6 +51,8 @@ setup(
     extras_require={
         'occasional': ['boto3', 'pandas', 'pymysql', 'psycopg2-binary'],
         'test': [
+            'pymysql', 
+            'psycopg2-binary',
             'moto',
             'pytest',
             'pytest-html',
