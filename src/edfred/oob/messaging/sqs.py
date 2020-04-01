@@ -142,9 +142,18 @@ class SQSQueue(SQSBase):
         return self.client.delete_message(QueueUrl=self.url, ReceiptHandle=receipt_handle)
 
     def delete_message_batch(self, receipt_handle_list: List[str]) -> Dict:
-        return self.client.delete_message_batch(
-            QueueUrl=self.url, Entries=[dict(Id=str(i), ReceiptHandle=m) for i, m in enumerate(receipt_handle_list)]
-        )
+        response = {}
+        for batch_no in range(0, len(receipt_handle_list), 10):
+            response.update(
+                self.client.delete_message_batch(
+                    QueueUrl=self.url,
+                    Entries=[
+                        dict(Id=str(i), ReceiptHandle=m)
+                        for i, m in enumerate(receipt_handle_list[batch_no: batch_no + 10])
+                    ],
+                )
+            )
+        return response
 
     def purge(self) -> Dict:
         return self.client.purge_queue(QueueUrl=self.url)
@@ -155,10 +164,15 @@ class SQSQueue(SQSBase):
         )
 
     def change_message_visibility_batch(self, receipt_handle_list: List[str], visibility_timeout: int) -> Dict:
-        return self.client.change_message_visibility_batch(
-            QueueUrl=self.url,
-            Entries=[
-                dict(Id=str(i), ReceiptHandle=m, VisibilityTimeout=visibility_timeout)
-                for i, m in enumerate(receipt_handle_list)
-            ],
-        )
+        response = {}
+        for batch_no in range(0, len(receipt_handle_list), 10):
+            response.update(
+                self.client.change_message_visibility_batch(
+                    QueueUrl=self.url,
+                    Entries=[
+                        dict(Id=str(i), ReceiptHandle=m, VisibilityTimeout=visibility_timeout)
+                        for i, m in enumerate(receipt_handle_list[batch_no: batch_no + 10])
+                    ],
+                )
+            )
+        return response
