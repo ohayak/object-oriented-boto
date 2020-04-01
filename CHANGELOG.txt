@@ -1,7 +1,19 @@
 0.0.3 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Limit to 10 messages batch sqs api calls (delete and change visibility)
+- add connect function in oob.rds.connection for mysql, pgsql and redshift
+- use new oob.rds.connection.connect inside SQLHandler
+
+
+0.0.2 (2020-03-30)
+------------------
+
+- New Class for SQL Connections under rds/connection
+- deletes utils.sql
+- move AWSJdbc to rds
+- add urlparse.unquote to S3Event key parsing 
+- add SNSEvent and SNSNotification with unit tests
 
 
 0.0.2 (2020-03-30)

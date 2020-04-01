@@ -5,10 +5,12 @@ from dataclasses import dataclass, field, asdict, InitVar
 from . import Handler, Event
 from edfred.oob.secretsmanager import SecretValue
 from edfred.oob.rds import AWSJdbc
+from edfred.oob.rds.connection import connect
 
 
 @dataclass
 class SQLHandler(Handler):
+    dbtype: str = "mysql"
     schema_name: str = field(init=False)
     cluster_jdbc: str = field(init=False)
     account_id: str = field(init=False)
@@ -16,9 +18,8 @@ class SQLHandler(Handler):
     credentials: str = field(init=False)
     cluster_arn: str = field(init=False)
     conn: object = field(init=False)
-    connector: InitVar = None
 
-    def __post_init__(self, connector):
+    def __post_init__(self):
         """Initialize the handler."""
         super().__post_init__()
         self.schema_name = os.environ.get("SCHEMA_NAME")
@@ -32,9 +33,6 @@ class SQLHandler(Handler):
             "password": self.credentials.attributes.password,
             "host": self.jdbc.host,
             "port": int(self.jdbc.port),
+            "dbname": self.jdbc.dbname,
         }
-        if "dbname" in inspect.getfullargspec(connector.connect)[0]:
-            conn_args["dbname"] = self.jdbc.dbname
-        else:
-            conn_args["db"] = self.jdbc.dbname
-        self.conn = connector.connect(**conn_args)
+        self.conn = connect(self.dbtype, **conn_args)

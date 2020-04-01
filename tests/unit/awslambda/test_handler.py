@@ -4,9 +4,11 @@
 """Test base objects."""
 import os
 from boto3 import client
-from mock import Mock
 from moto import mock_secretsmanager
 from edfred.oob.awslambda.handler import SQLHandler
+import mock
+import pymysql
+
 
 
 @mock_secretsmanager
@@ -21,8 +23,10 @@ def test_sql_handler():
     sm.create_secret(
         Name=os.environ["SECRET_CREDENTIALS_ARN"], SecretString='[{"Username":"bob"},{"Password":"abc123"}]',
     )
-    handler = SQLHandler(connector=Mock())
-    assert handler.schema_name == os.environ.get("SCHEMA_NAME")
-    assert handler.cluster_jdbc == os.environ.get("CLUSTER_JDBC")
-    assert handler.account_id == os.environ.get("ACCOUNT_ID")
-    assert handler.cluster_arn == "arn:aws:rds:eu-west-1:123456789012:cluster:rds-cluster-id"
+    with mock.patch("edfred.oob.rds.connection.MySQLConnection") as connect_mock:
+        connect_mock.return_value = mock.Mock()
+        handler = SQLHandler()
+        assert handler.schema_name == os.environ.get("SCHEMA_NAME")
+        assert handler.cluster_jdbc == os.environ.get("CLUSTER_JDBC")
+        assert handler.account_id == os.environ.get("ACCOUNT_ID")
+        assert handler.cluster_arn == "arn:aws:rds:eu-west-1:123456789012:cluster:rds-cluster-id"
