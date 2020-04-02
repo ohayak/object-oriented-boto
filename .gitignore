@@ -7,7 +7,7 @@
 \#*\#
 # vim temp files
 *.swp
-#
+# VSCode
 .vscode
 
 # Byte-compiled / optimized / DLL files
