@@ -9,7 +9,7 @@ import os
 import sys
 from shutil import rmtree
 
-from setuptools import Command, find_packages, setup
+from setuptools import Command, find_namespace_packages, setup
 
 # ----------------------------------------------------------------------------
 # Helper Functions
@@ -40,7 +40,7 @@ setup(
     python_requires='>=3.6.0',
     url="https://git-codecommit.eu-west-1.amazonaws.com/v1/repos/edfred-oob-library",    
     package_dir={'': 'src'},
-    packages=find_packages(where='src'),
+    packages=find_namespace_packages(where='src', include=['edfred.*']),
     install_requires=[
         'typing',
         'dataclasses',
