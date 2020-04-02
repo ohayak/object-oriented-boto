@@ -10,7 +10,6 @@ import mock
 import pymysql
 
 
-
 @mock_secretsmanager
 def test_sql_handler():
     os.environ["SCHEMA_NAME"] = "test"

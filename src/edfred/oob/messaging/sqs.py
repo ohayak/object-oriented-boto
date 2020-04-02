@@ -149,7 +149,7 @@ class SQSQueue(SQSBase):
                     QueueUrl=self.url,
                     Entries=[
                         dict(Id=str(i), ReceiptHandle=m)
-                        for i, m in enumerate(receipt_handle_list[batch_no: batch_no + 10])
+                        for i, m in enumerate(receipt_handle_list[batch_no : batch_no + 10])
                     ],
                 )
             )
@@ -171,7 +171,7 @@ class SQSQueue(SQSBase):
                     QueueUrl=self.url,
                     Entries=[
                         dict(Id=str(i), ReceiptHandle=m, VisibilityTimeout=visibility_timeout)
-                        for i, m in enumerate(receipt_handle_list[batch_no: batch_no + 10])
+                        for i, m in enumerate(receipt_handle_list[batch_no : batch_no + 10])
                     ],
                 )
             )
