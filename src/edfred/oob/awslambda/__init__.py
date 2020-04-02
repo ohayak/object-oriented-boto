@@ -47,17 +47,17 @@ class Handler:
             attributes = payload["ConsoleCall"].get("Attributes", {})
             environ = payload["ConsoleCall"].get("Environ", {})
             self.overwrite_environ(environ)
-            self.console_call(event, attributes)
+            return self.console_call(event, attributes)
         else:
             event = self.event_parser(payload, context)
-        return self.perform(event)
+            return self.perform(event)
 
     def overwrite_environ(self, environ: Dict):
         for k, v in environ.items():
             os.environ[k] = v
 
     def console_call(self, event: Event, attributes: Dict):
-        pass
+        return self.perform(event)
 
     def perform(self, event: Event):
         """Stub perform method."""
