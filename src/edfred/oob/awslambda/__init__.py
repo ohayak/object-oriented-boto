@@ -40,23 +40,24 @@ class Handler:
 
     def __call__(self, payload, context, **kwargs):
         """Wrap perform(), invoked by AWS Lambda."""
-        if "ConsoleCall" in payload:
+        if "ManualCall" in payload:
             event = self.event_parser(
-                payload["ConsoleCall"].get("Payload", {}), payload["ConsoleCall"].get("Context", context)
+                payload["ManualCall"].get("Payload", {}), payload["ManualCall"].get("Context", context)
             )
-            attributes = payload["ConsoleCall"].get("Attributes", {})
-            environ = payload["ConsoleCall"].get("Environ", {})
+            attributes = payload["ManualCall"].get("Attributes", {})
+            environ = payload["ManualCall"].get("Environ", {})
             self.overwrite_environ(environ)
-            return self.console_call(event, attributes)
+            return self.manual_call(event, attributes)
         else:
+            self.overwrite_environ(payload.get("Environ", {}))
             event = self.event_parser(payload, context)
             return self.perform(event)
 
     def overwrite_environ(self, environ: Dict):
         for k, v in environ.items():
-            os.environ[k] = v
+            os.environ[k] = str(v)
 
-    def console_call(self, event: Event, attributes: Dict):
+    def manual_call(self, event: Event, attributes: Dict):
         return self.perform(event)
 
     def perform(self, event: Event):

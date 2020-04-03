@@ -1,7 +1,8 @@
 0.0.4 (unreleased)
 ------------------
 
-- Add Console Call behaviour to Handler
+- Add Manual Call behaviour to Handler
+- remove unused attributes from S3 class
 
 
 0.0.3 (2020-04-01)

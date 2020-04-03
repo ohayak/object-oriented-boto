@@ -13,7 +13,6 @@ class S3Base:
 @dataclass
 class S3Bucket(S3Base):
     arn: str = None
-    url: str = field(default=None, init=False)
     name: str = None
     region: str = None
 
@@ -66,7 +65,6 @@ class S3Object(S3Base):
     prefix: str = field(default=None, init=False)
     suffix: str = field(default=None, init=False)
     is_folder: bool = field(default=None, init=False)
-    _attributes: Tuple = field(default=None, init=False)
 
     def __post_init__(self):
         key_split = self.key.split("/")
@@ -77,11 +75,8 @@ class S3Object(S3Base):
         self.attributes
 
     @property
-    def attributes(self):
-        self._attributes = underscore_namedtuple(
-            "ObjectHead", self.client.head_object(Bucket=self.bucket_name, Key=self.key)
-        )
-        return self._attributes
+    def attributes(self) -> Tuple:
+        return underscore_namedtuple("ObjectHead", self.client.head_object(Bucket=self.bucket_name, Key=self.key))
 
     def download_fileobj(self) -> BytesIO:
         fileobj = BytesIO()
@@ -89,12 +84,12 @@ class S3Object(S3Base):
         fileobj.seek(0)
         return fileobj
 
-    def copy_to(self, bucket, key):
+    def copy_to(self, bucket, key) -> "S3Object":
         self.client.copy(Bucket=bucket, Key=key, CopySource={"Bucket": self.bucket_name, "Key": self.key})
         new = S3Object(bucket, key)
         return new
 
-    def move_to(self, bucket, key):
+    def move_to(self, bucket, key) -> "S3Object":
         new = self.copy_to(bucket, key)
         self.delete()
         return new
