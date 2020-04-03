@@ -22,7 +22,7 @@ def test_sql_handler():
     sm.create_secret(
         Name=os.environ["SECRET_CREDENTIALS_ARN"], SecretString='[{"Username":"bob"},{"Password":"abc123"}]',
     )
-    with mock.patch("edfred.oob.rds.connection.MySQLConnection") as connect_mock:
+    with mock.patch("edfred.oob.rds.mysql.Connection") as connect_mock:
         connect_mock.return_value = mock.Mock()
         handler = SQLHandler()
         assert handler.schema_name == os.environ.get("SCHEMA_NAME")

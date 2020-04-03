@@ -1,7 +1,8 @@
 0.0.5 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- move connect to root rds module
+- pymysql and psycopg2 are only required at run time depending on connection type
 
 
 0.0.4 (2020-04-03)

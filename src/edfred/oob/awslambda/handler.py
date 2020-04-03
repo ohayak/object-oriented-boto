@@ -4,8 +4,7 @@ from typing import ClassVar, List, Generic
 from dataclasses import dataclass, field, asdict, InitVar
 from . import Handler, Event
 from edfred.oob.secretsmanager import SecretValue
-from edfred.oob.rds import AWSJdbc
-from edfred.oob.rds.connection import connect
+from edfred.oob.rds import AWSJdbc, connect
 
 
 @dataclass
