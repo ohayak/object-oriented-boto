@@ -1,4 +1,4 @@
-0.0.4 (unreleased)
+0.0.4 (2020-04-03)
 ------------------
 
 - Add Manual Call behaviour to Handler
