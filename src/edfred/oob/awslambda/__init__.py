@@ -28,22 +28,21 @@ class Handler:
     """Base Handler."""
 
     event_parser: Event = field(default_factory=Event)
+    environ: Dict = None
     aws_lambda_name: str = field(init=False)
     aws_region: str = field(init=False)
     region: str = field(init=False)
-    environ: Dict = field(init=False)
 
     def __post_init__(self):
         """Initialize the handler."""
-        self.environ = os.environ.copy()
+        if not self.environ:
+            self.environ = os.environ.copy()
         self.aws_lambda_name = self.environ.get("AWS_LAMBDA_FUNCTION_NAME", "Lambda")
         self.aws_region = self.environ.get("AWS_REGION", "")
         self.region = self.environ.get("REGION", self.aws_region)
 
-    def __call__(self, payload, context, environ: Dict = None, **kwargs):
+    def __call__(self, payload, context, **kwargs):
         """Wrap perform(), invoked by AWS Lambda."""
-        if environ:
-            self.environ = environ.copy()
         if "ManualCall" in payload:
             event = self.event_parser(
                 payload["ManualCall"].get("Payload", {}), payload["ManualCall"].get("Context", context)
