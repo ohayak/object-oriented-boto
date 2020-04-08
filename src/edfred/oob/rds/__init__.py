@@ -1,5 +1,6 @@
 import re
 import logging
+from time import sleep
 from dataclasses import dataclass, field
 
 
@@ -68,13 +69,13 @@ class Extentions(object):
                 log.info("End SQL transaction.")
                 return
             except exception_cls as e:
+                self.rollback()
                 if i < max_retries:
                     log.warning(f"Error raised: {e}, Rollback and retry.")
-                    self.rollback()
                     log.warning(f"Retry-{i+1} after {retry_delay} secs")
                     sleep(retry_delay)
                     continue
-                log.error(f"Retries maxout. Raise error")
+                log.error(f"Retries maxout. Rollback and Raise error")
                 log.error(e)
                 raise e
 

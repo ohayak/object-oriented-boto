@@ -3,6 +3,7 @@
 
 - move connect to root rds module
 - pymysql and psycopg2 are only required at run time depending on connection type
+- add environ property to Handler
 
 
 0.0.4 (2020-04-03)

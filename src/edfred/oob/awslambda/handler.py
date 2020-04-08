@@ -21,9 +21,9 @@ class SQLHandler(Handler):
     def __post_init__(self):
         """Initialize the handler."""
         super().__post_init__()
-        self.schema_name = os.environ.get("SCHEMA_NAME")
-        self.cluster_jdbc = os.environ.get("CLUSTER_JDBC")
-        self.account_id = os.environ.get("ACCOUNT_ID")
+        self.schema_name = self.environ.get("SCHEMA_NAME")
+        self.cluster_jdbc = self.environ.get("CLUSTER_JDBC")
+        self.account_id = self.environ.get("ACCOUNT_ID")
         self.jdbc = AWSJdbc(self.cluster_jdbc)
         self.credentials = SecretValue(os.environ.get("SECRET_CREDENTIALS_ARN"))
         self.cluster_arn = f"arn:aws:rds:{self.jdbc.region}:{self.account_id}:cluster:{self.jdbc.identifier}"
