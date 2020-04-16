@@ -21,7 +21,7 @@ class SQSMessage(SQSBase):
     message_attributes: Dict = None
     message_attributes_schema: Dict = None
     id: str = None
-    groupe_id: str = None
+    group_id: str = None
     sequence_number: str = None
 
     def __post_init__(self):
@@ -31,7 +31,7 @@ class SQSMessage(SQSBase):
             }
         elif self.message_attributes_schema and not self.message_attributes:
             self.message_attributes = {}
-            for k, v in self.message_attributes.items():
+            for k, v in self.message_attributes_schema.items():
                 if "StringValue" in v:
                     self.message_attributes[k] = v["StringValue"]
                 if "BinaryValue" in v:
@@ -56,8 +56,8 @@ class SQSMessage(SQSBase):
 
     def send(self, delay: int = None) -> Dict:
         payload = dict(QueueUrl=self.queue_url, MessageBody=self.body, MessageAttributes=self.message_attributes_schema)
-        if self.groupe_id:
-            payload["GroupeId"] = self.groupe_id
+        if self.group_id:
+            payload["MessageGroupId"] = self.group_id
         if delay:
             payload["DelaySeconds"] = delay
         response = self.client.send_message(**payload)

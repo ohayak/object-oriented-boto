@@ -28,7 +28,7 @@ class SNSNotification(SNSBase):
             }
         elif self.message_attributes_schema and not self.message_attributes:
             self.message_attributes = {}
-            for k, v in self.message_attributes.items():
+            for k, v in self.message_attributes_schema.items():
                 if "StringValue" in v:
                     self.message_attributes[k] = v["StringValue"]
                 if "BinaryValue" in v:
@@ -59,7 +59,7 @@ class SNSTopic(SNSBase):
         else:
             raise (ValueError("you must specify a value for the TopicArn or PhoneNumber parameters."))
         if attributes:
-            payload[" MessageAttributes"] = attributes
+            payload["MessageAttributes"] = attributes
         if structure == "json":
             payload["MessageStructure"] = "json"
         return self.client.publish(**payload)["MessageId"]
