@@ -16,7 +16,7 @@ from setuptools import Command, find_namespace_packages, setup
 # ----------------------------------------------------------------------------
 
 ROOT = os.path.dirname(__file__)
-VERSION = "0.0.6"
+VERSION = "0.0.7.DEV0"
 
 def file_contents(file_name):
     """Given a file name to a valid file returns the file object."""
