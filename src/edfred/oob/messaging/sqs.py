@@ -25,11 +25,11 @@ class SQSMessage(SQSBase):
     sequence_number: str = None
 
     def __post_init__(self):
-        if self.message_attributes and not self.message_attributes_schema:
+        if self.message_attributes:
             self.message_attributes_schema = {
                 k: MessageAttribute(k, v).schema for k, v, in self.message_attributes.items()
             }
-        elif self.message_attributes_schema and not self.message_attributes:
+        elif self.message_attributes_schema:
             self.message_attributes = {}
             for k, v in self.message_attributes_schema.items():
                 if "StringValue" in v:

@@ -13,6 +13,7 @@ class SNSBase:
 @dataclass
 class SNSNotification(SNSBase):
     message: str
+    structure: str = "text"
     timestamp: str = None
     signature: str = None
     signing_url: str = None
@@ -22,11 +23,11 @@ class SNSNotification(SNSBase):
     type: str = None
 
     def __post_init__(self):
-        if self.message_attributes and not self.message_attributes_schema:
+        if self.message_attributes:
             self.message_attributes_schema = {
                 k: MessageAttribute(k, v).schema for k, v, in self.message_attributes.items()
             }
-        elif self.message_attributes_schema and not self.message_attributes:
+        elif self.message_attributes_schema:
             self.message_attributes = {}
             for k, v in self.message_attributes_schema.items():
                 if "StringValue" in v:
@@ -78,3 +79,22 @@ class SNSSubscription(SNSBase):
 
     def unsubscribe(self):
         self.client.unsubscribe(SubscriptionArn=self.arn)
+
+
+@dataclass
+class SNSTopicNotification(SNSNotification):
+    topic_arn: str = None
+    subject: str = None
+
+    def __post_init__(self):
+        if not (self.topic_arn and self.subject):
+            raise ValueError("topic_arn and subject must be defined and not None.")
+
+    def publish(self) -> str:
+        payload = dict(Message=self.message, Subject=self.subject)
+        payload["TopicArn"] = self.topic_arn
+        if self.message_attributes:
+            payload["MessageAttributes"] = self.message_attributes_schema
+        if self.structure == "json":
+            payload["MessageStructure"] = "json"
+        return self.client.publish(**payload)["MessageId"]

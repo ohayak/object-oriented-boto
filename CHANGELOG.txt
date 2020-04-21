@@ -8,6 +8,7 @@
 ------------------
 
 - fix SQS recieve message message attributes.
+-  Add SNSTopicNotification
 
 
 0.0.6 (2020-04-16)
