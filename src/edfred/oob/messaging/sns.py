@@ -91,8 +91,7 @@ class SNSTopicNotification(SNSNotification):
             raise ValueError("topic_arn and subject must be defined and not None.")
 
     def publish(self) -> str:
-        payload = dict(Message=self.message, Subject=self.subject)
-        payload["TopicArn"] = self.topic_arn
+        payload = dict(TopicArn=self.topic_arn, Message=self.message, Subject=self.subject)
         if self.message_attributes:
             payload["MessageAttributes"] = self.message_attributes_schema
         if self.structure == "json":
