@@ -1,7 +1,7 @@
 0.0.7 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- fix SQS recieve message message attributes.
 
 
 0.0.6 (2020-04-16)

@@ -116,7 +116,7 @@ class SQSQueue(SQSBase):
                 body_md5=message.get("MD5OfBody", None),
                 region=message.get("Region", None),
                 attributes=underscore_namedtuple("Attributes", message.get("Attributes", {})),
-                message_attributes=message.get("MessageAttributes", {}),
+                message_attributes_schema=message.get("MessageAttributes", {}),
                 queue_url=self.url,
                 id=message.get("MessageId", None),
                 receipt_handle=message.get("ReceiptHandle", None),
