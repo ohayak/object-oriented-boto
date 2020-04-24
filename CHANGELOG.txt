@@ -1,7 +1,7 @@
 0.0.8 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Add split_lines to s3 upload
 
 
 0.0.7 (2020-04-21)

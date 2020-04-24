@@ -16,21 +16,42 @@ class Connection(pymysql.connections.Connection, Extentions):
         lines_delimiter="\n",
         action="ignore",
         encoding="utf8",
+        split_lines=False
     ):
         s3_url = f"s3://{s3object.bucket_name}/{s3object.key}"
         fileobj = s3object.download_fileobj()
-        columns = fileobj.readline().decode("utf-8-sig").split(fields_delimiter)
+        columns = fileobj.readline().decode("utf-8-sig").rstrip().split(fields_delimiter)
+        stmt = None
+        if split_lines:
+            stmt = []
+            for line in fileobj.read().splitlines():
+                values = line.decode("utf-8-sig").split(fields_delimiter)
+                if sum(map(len, values)) == 0:
+                    continue
+                values_string = "'" + "', '".join(values) + "'"
+                columns_string = ", ".join(columns)
+                updates = []
+                for k,v in zip(columns, values):
+                    updates.append(f"{k} = '{v}'")
+                updates_string = ", ".join(updates)
+
+                stmt.append(
+                    f"INSERT INTO {schema}.{table} ({columns_string}) "
+                    f"VALUES ({values_string}) "
+                    f"ON DUPLICATE KEY UPDATE {updates_string};"
+                )
+        else:
+            stmt = (
+                f"LOAD DATA FROM S3 '{s3_url}' {action} "
+                f"INTO TABLE {schema}.{table} "
+                f"character set {encoding} "
+                f"fields terminated by '{fields_delimiter}' "
+                f"lines terminated by '{lines_delimiter}' "
+                f"ignore {ignore_lines} LINES "
+                f"({','.join(columns)});"
+            )
         fileobj.close()
-        statement = (
-            f"LOAD DATA FROM S3 '{s3_url}' {action} "
-            f"INTO TABLE {schema}.{table} "
-            f"character set {encoding} "
-            f"fields terminated by '{fields_delimiter}' "
-            f"lines terminated by '{lines_delimiter}' "
-            f"ignore {ignore_lines} LINES "
-            f"({','.join(columns)});"
-        )
-        return statement
+        return stmt
 
     def load_from_s3(
         self,

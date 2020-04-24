@@ -71,7 +71,7 @@ class Extentions(object):
             except exception_cls as e:
                 self.rollback()
                 if i < max_retries:
-                    log.warning(f"Error raised: {e}, Rollback and retry.")
+                    log.warning(f"Try to execute: {stm} but error raised: {e}, Rollback and retry.")
                     log.warning(f"Retry-{i+1} after {retry_delay} secs")
                     sleep(retry_delay)
                     continue
