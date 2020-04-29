@@ -16,7 +16,7 @@ class Connection(pymysql.connections.Connection, Extentions):
         lines_delimiter="\n",
         action="ignore",
         encoding="utf8",
-        split_lines=False
+        split_lines=False,
     ):
         s3_url = f"s3://{s3object.bucket_name}/{s3object.key}"
         fileobj = s3object.download_fileobj()
@@ -31,7 +31,7 @@ class Connection(pymysql.connections.Connection, Extentions):
                 values_string = "'" + "', '".join(values) + "'"
                 columns_string = ", ".join(columns)
                 updates = []
-                for k,v in zip(columns, values):
+                for k, v in zip(columns, values):
                     updates.append(f"{k} = '{v}'")
                 updates_string = ", ".join(updates)
 
