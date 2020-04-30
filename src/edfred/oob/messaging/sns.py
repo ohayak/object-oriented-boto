@@ -13,6 +13,7 @@ class SNSBase:
 @dataclass
 class SNSNotification(SNSBase):
     message: str
+    subject: str = None
     structure: str = "text"
     timestamp: str = None
     signature: str = None
@@ -41,7 +42,6 @@ class SNSNotification(SNSBase):
 
 @dataclass
 class SNSTopic(SNSBase):
-    subject: str
     arn: str = None
     phone: str = None
     attributes: Dict = field(init=False)
@@ -51,7 +51,7 @@ class SNSTopic(SNSBase):
             "SNSTopic", self.client.get_topic_attributes(TopicArn=self.arn).get("Attributes", {})
         )
 
-    def publish(self, message: str, structure: str = "text", attributes: Dict = None) -> str:
+    def publish(self, message: str, subject: str = None, structure: str = "text", attributes: Dict = None) -> str:
         payload = dict(Message=message, Subject=self.subject)
         if self.arn:
             payload["TopicArn"] = self.arn
@@ -59,6 +59,8 @@ class SNSTopic(SNSBase):
             payload["PhoneNumber"] = self.phone
         else:
             raise (ValueError("you must specify a value for the TopicArn or PhoneNumber parameters."))
+        if subject:
+            payload["Subject"] = subject
         if attributes:
             payload["MessageAttributes"] = attributes
         if structure == "json":
@@ -84,14 +86,15 @@ class SNSSubscription(SNSBase):
 @dataclass
 class SNSTopicNotification(SNSNotification):
     topic_arn: str = None
-    subject: str = None
 
     def __post_init__(self):
-        if not (self.topic_arn and self.subject):
-            raise ValueError("topic_arn and subject must be defined and not None.")
+        if not self.topic_arn:
+            raise ValueError("topic_arn must be defined and not None.")
 
     def publish(self) -> str:
-        payload = dict(TopicArn=self.topic_arn, Message=self.message, Subject=self.subject)
+        payload = dict(TopicArn=self.topic_arn, Message=self.message)
+        if self.subject:
+            payload["Subject"] = self.subject
         if self.message_attributes:
             payload["MessageAttributes"] = self.message_attributes_schema
         if self.structure == "json":
