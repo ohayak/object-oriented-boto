@@ -46,7 +46,7 @@ class AWSJdbc:
     dbname: str = field(init=False, default=None)
 
     def __post_init__(self):
-        regex = r"jdbc:(\w+)://(([\w\d-]+).([\w\d]+).([\w\d-]+).([\w\d-]+).amazonaws.com):(\d+)/([\w\d-]+)"
+        regex = r"jdbc:(\w+)://(([\w\d-]+).([\w\d-]+).([\w\d-]+).([\w\d-]+).amazonaws.com):(\d+)/([\w\d-]+)"
         match = re.match(regex, self.url)
         self.awsurl = match.group(0)
         self.engine = match.group(1)

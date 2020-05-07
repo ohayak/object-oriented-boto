@@ -6,7 +6,7 @@
 - Add DATA API Connector
 - add options to load_from_s3 function split_lines, keep_columns=None, ignore_columns
 - add option to change select query in load_to_s3 function
-
+- fix regex in AWSJdbc parser
 
 0.0.7 (2020-04-21)
 ------------------
