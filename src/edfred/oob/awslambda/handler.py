@@ -35,4 +35,7 @@ class SQLHandler(Handler):
             "port": int(self.jdbc.port),
             "dbname": self.jdbc.dbname,
         }
+        if use_data_api:
+            conn_args['aurora_cluster_arn'] = self.cluster_arn
+            conn_args['secret_arn'] = self.credentials.secret_id
         self.conn = connect(self.dbtype, use_data_api=use_data_api, **conn_args)
