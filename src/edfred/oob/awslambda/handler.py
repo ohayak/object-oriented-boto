@@ -10,6 +10,7 @@ from edfred.oob.rds import AWSJdbc, connect
 @dataclass
 class SQLHandler(Handler):
     dbtype: str = "mysql"
+    use_data_api: InitVar[bool] = False
     schema_name: str = field(init=False)
     cluster_jdbc: str = field(init=False)
     account_id: str = field(init=False)
@@ -18,7 +19,7 @@ class SQLHandler(Handler):
     cluster_arn: str = field(init=False)
     conn: object = field(init=False)
 
-    def __post_init__(self):
+    def __post_init__(self, use_data_api):
         """Initialize the handler."""
         super().__post_init__()
         self.schema_name = self.environ.get("SCHEMA_NAME")
@@ -34,4 +35,4 @@ class SQLHandler(Handler):
             "port": int(self.jdbc.port),
             "dbname": self.jdbc.dbname,
         }
-        self.conn = connect(self.dbtype, **conn_args)
+        self.conn = connect(self.dbtype, use_data_api=use_data_api, **conn_args)
