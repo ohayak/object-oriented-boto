@@ -9,7 +9,7 @@ import os
 def test_sns_topic():
     sns = client("sns")
     topic_arn = sns.create_topic(Name="sns-lambda")["TopicArn"]
-    topic = SNSTopic(arn=topic_arn, subject="test")
+    topic = SNSTopic(arn=topic_arn)
     topic.publish("Hello")
 
 

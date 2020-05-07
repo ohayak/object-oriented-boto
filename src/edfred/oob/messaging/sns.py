@@ -52,7 +52,7 @@ class SNSTopic(SNSBase):
         )
 
     def publish(self, message: str, subject: str = None, structure: str = "text", attributes: Dict = None) -> str:
-        payload = dict(Message=message, Subject=self.subject)
+        payload = dict(Message=message)
         if self.arn:
             payload["TopicArn"] = self.arn
         elif self.phone:

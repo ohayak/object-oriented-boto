@@ -1,14 +1,14 @@
 import re
-import logging
-from time import sleep
 from dataclasses import dataclass, field
 
 
-def connect(dbtype, **kwargs):
+def connect(dbtype, use_data_api=False, **kwargs):
     if dbtype not in ["mysql", "pgsql", "redshift"]:
         raise KeyError(f"dbtype={dbtype} must be `mysql` or `pgsql` or `redshift`")
 
     if dbtype in ["pgsql", "redshift"]:
+        if use_data_api:
+            raise KeyError(f"AWS Aurora Serverless Data API do not support {dbtype}")
         if "db" in kwargs:
             kwargs["dbname"] = kwargs["db"]
             del kwargs["db"]
@@ -18,6 +18,10 @@ def connect(dbtype, **kwargs):
         from .pgsql import Connection
 
     elif dbtype == "mysql":
+        if use_data_api:
+            if not set(["aurora_cluster_arn", "secret_arn"]).issubset(kwargs.keys()):
+                raise KeyError(f"aurora_cluster_arn and secret_arn arguments are required to use DATA API")
+            from .data_api import MySQLConnection as Connection
         if "dbname" in kwargs:
             kwargs["db"] = kwargs["dbname"]
             del kwargs["dbname"]
@@ -53,78 +57,3 @@ class AWSJdbc:
         self.aws_service = match.group(6)
         self.port = match.group(7)
         self.dbname = match.group(8)
-
-
-class Extentions(object):
-    def execute_transaction(self, statements, max_retries=0, retry_delay=10, logger=None, exception_cls=Exception):
-        log = logger if logger else logging
-        for i in range(max_retries + 1):
-            try:
-                log.info("Start SQL transaction")
-                with self.cursor() as cur:
-                    for stm in statements:
-                        log.debug(stm)
-                        cur.execute(stm)
-                self.commit()
-                log.info("End SQL transaction.")
-                return
-            except exception_cls as e:
-                self.rollback()
-                if i < max_retries:
-                    log.warning(f"Try to execute: {stm} but error raised: {e}, Rollback and retry.")
-                    log.warning(f"Retry-{i+1} after {retry_delay} secs")
-                    sleep(retry_delay)
-                    continue
-                log.error(f"Retries maxout. Rollback and Raise error")
-                log.error(e)
-                raise e
-
-    def get_list_tables(self, schema_name):
-        list_tables = []
-        with self.cursor() as cur:
-            cur.execute(f"select table_name from information_schema.tables where table_schema = '{schema_name}';")
-            result = cur.fetchall()
-            for record in result:
-                list_tables.append(record[0])
-        return list_tables
-
-    def get_table_columns_list(self, schema_name, table_name):
-        list_columns = []
-        with self.cursor() as cur:
-            cur.execute(
-                f"select column_name from information_schema.columns "
-                f"where table_schema = '{schema_name}' "
-                f"and table_name = '{table_name}' "
-                f"order by ordinal_position;"
-            )
-            result = cur.fetchall()
-            for record in result:
-                list_columns.append(record[0])
-        self.commit()
-        return list_columns
-
-    @staticmethod
-    def parse_sql_file(filename):
-        with open(filename, "r") as f:
-            data = f.readlines()
-            stmts = []
-            DELIMITER = ";"
-            stmt = ""
-            for lineno, line in enumerate(data):
-                if not line.strip():
-                    continue
-                if line.startswith("--"):
-                    continue
-                if "DELIMITER" in line:
-                    DELIMITER = line.split()[1]
-                    continue
-                if DELIMITER not in line:
-                    stmt += line.replace(DELIMITER, ";")
-                    continue
-                if stmt:
-                    stmt += line
-                    stmts.append(stmt.strip())
-                    stmt = ""
-                else:
-                    stmts.append(line.strip())
-            return stmts

@@ -45,7 +45,7 @@ class SNSEvent(Event):
     def parse(self, payload, context):
         """Initialize the class."""
         sns_event = payload["Records"][0]["Sns"]
-        self.topic = SNSTopic(arn=sns_event.get("TopicArn"), subject=sns_event.get("Subject"))
+        self.topic = SNSTopic(arn=sns_event.get("TopicArn"))
         self.subscription = SNSSubscription(payload["Records"][0]["EventSubscriptionArn"])
         self.notification = SNSNotification(
             timestamp=sns_event.get("Timestamp"),

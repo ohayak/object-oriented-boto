@@ -3,6 +3,7 @@
 
 - Add split_lines to s3 upload
 - add GlueJob class
+- Add DATA API Connector
 
 
 0.0.7 (2020-04-21)

@@ -1,11 +1,9 @@
 from edfred.oob.s3 import S3Object
-from time import sleep
-import logging
 import psycopg2
-from . import Extentions
+from .extentions import Base
 
 
-class Connection(psycopg2.extensions.connection, Extentions):
+class Connection(psycopg2.extensions.connection, Base):
     @staticmethod
     def format_s3_load_statement(s3object: S3Object, schema, table, region, delimiter=";"):
         return f"select aws_s3.table_import_from_s3('\"{schema}\".\"{table}\"', '', '(format csv, header true, delimiter '{delimiter}')', '{s3object.bucket_name}', '{s3object.key}', '{region}');"
