@@ -80,7 +80,7 @@ class Base:
 
 class MySQL:
     @staticmethod
-    def format_s3_load_statement(
+    def load_from_s3_statement(
         s3object: S3Object,
         schema,
         table,
@@ -90,10 +90,22 @@ class MySQL:
         action="ignore",
         encoding="utf8",
         split_lines=False,
+        keep_columns=None,
+        ignore_columns=[],
     ):
         s3_url = f"s3://{s3object.bucket_name}/{s3object.key}"
         fileobj = s3object.download_fileobj()
         columns = fileobj.readline().decode("utf-8-sig").rstrip().split(fields_delimiter)
+
+        # Use subset of columns
+        if keep_columns:
+            if not set(keep_columns).issubset(columns):
+                raise KeyError(f"Columns {keep_columns} are not a subset of CSV header: {columns}")
+            columns = keep_columns
+
+        # Ignore columns
+        columns = list(set(columns) - set(ignore_columns))
+
         stmt = None
         if split_lines:
             stmt = []
@@ -126,57 +138,42 @@ class MySQL:
         fileobj.close()
         return stmt
 
-    def load_from_s3(
-        self,
-        s3object: S3Object,
-        schema,
-        table,
-        ignore_lines=1,
-        fields_delimiter=";",
-        lines_delimiter="\n",
-        action="ignore",
-        encoding="utf8",
-    ):
+    def load_from_s3(self, *args, **kwargs):
         with self.cursor() as cur:
-            cur.execute(
-                self.format_s3_load_statement(
-                    s3object,
-                    schema,
-                    table,
-                    ignore_lines=1,
-                    fields_delimiter=";",
-                    lines_delimiter="\n",
-                    action="ignore",
-                    encoding="utf8",
-                )
-            )
+            cur.execute(self.format_s3_load_statement(*args, **kwargs))
         self.commit()
 
     @staticmethod
-    def format_s3_unload_statement(
-        bucket, key, schema, table, fields_delimiter=";", lines_delimiter="\n", encoding="utf8"
+    def load_into_s3_statement(
+        bucket,
+        key,
+        schema,
+        table,
+        select_quey=None,
+        fields_delimiter=";",
+        lines_delimiter="\n",
+        encoding="utf8",
+        overwrite=True,
     ):
         s3_url = f"s3://{bucket}/{key}"
+        if not select_quey:
+            select_quey = f"SELECT * FROM {schema}.{table}"
         statement = (
-            f"SELECT * FROM {schema}.{table} INTO OUTFILE S3 '{s3_url}' "
+            f"{select_quey} INTO OUTFILE S3 '{s3_url}' "
             f"character set {encoding} "
             f"fields terminated by '{fields_delimiter}' "
             f"lines terminated by '{lines_delimiter}' "
-            f"overwrite on;"
+            f"overwrite {'on' if overwrite else 'off'};"
         )
         return statement
 
-    def load_into_s3(self, bucket, key, schema, table, fields_delimiter=";", lines_delimiter="\n", encoding="utf8"):
+    def load_into_s3(self, *args, **kwargs):
         with self.cursor() as cur:
-            cur.execute(
-                self.format_s3_unload_statement(
-                    bucket, key, schema, table, fields_delimiter=";", lines_delimiter="\n", encoding="utf8"
-                )
-            )
+            cur.execute(self.load_into_s3_statement(*args, **kwargs))
         self.commit()
 
     @staticmethod
-    def format_local_load_statement(
+    def load_from_file_statement(
         filepath,
         schema,
         table,
@@ -185,20 +182,57 @@ class MySQL:
         lines_delimiter="\n",
         action="ignore",
         encoding="utf8",
+        split_lines=False,
+        keep_columns=None,
+        ignore_columns=[],
     ):
-        f = open(filepath, "r")
-        columns = f.readline().split(fields_delimiter)
-        f.close()
-        statement = (
-            f"LOAD DATA LOCAL INFILE '{filepath}' {action} "
-            f"INTO TABLE {schema}.{table} "
-            f"character set {encoding} "
-            f"fields terminated by '{fields_delimiter}' "
-            f"lines terminated by '{lines_delimiter}' "
-            f"ignore {ignore_lines} LINES "
-            f"({','.join(columns)});"
-        )
+        fileobj = open(filepath, encoding="utf-8", mode="r")
+        columns = fileobj.readline().split(fields_delimiter)
+        # Use subset of columns
+        if keep_columns:
+            if not set(keep_columns).issubset(columns):
+                raise KeyError(f"Columns {keep_columns} are not a subset of CSV header: {columns}")
+            columns = keep_columns
+
+        # Ignore columns
+        columns = list(set(columns) - set(ignore_columns))
+
+        statement = None
+        if split_lines:
+            stmt = []
+            for line in fileobj.read().splitlines():
+                values = line.split(fields_delimiter)
+                if sum(map(len, values)) == 0:
+                    continue
+                values_string = "'" + "', '".join(values) + "'"
+                columns_string = ", ".join(columns)
+                updates = []
+                for k, v in zip(columns, values):
+                    updates.append(f"{k} = '{v}'")
+                updates_string = ", ".join(updates)
+
+                statement.append(
+                    f"INSERT INTO {schema}.{table} ({columns_string}) "
+                    f"VALUES ({values_string}) "
+                    f"ON DUPLICATE KEY UPDATE {updates_string};"
+                )
+        else:
+            statement = (
+                f"LOAD DATA LOCAL INFILE '{filepath}' {action} "
+                f"INTO TABLE {schema}.{table} "
+                f"character set {encoding} "
+                f"fields terminated by '{fields_delimiter}' "
+                f"lines terminated by '{lines_delimiter}' "
+                f"ignore {ignore_lines} LINES "
+                f"({','.join(columns)});"
+            )
+        fileobj.close()
         return statement
+
+    def load_from_file(self, *args, **kwargs):
+        with self.cursor() as cur:
+            cur.execute(self.load_from_file_statement(*args, **kwargs))
+        self.commit()
 
     def get_create_table_query(self, schema, table):
         with self.cursor() as cur:
