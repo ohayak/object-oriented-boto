@@ -22,13 +22,14 @@ def connect(dbtype, use_data_api=False, **kwargs):
             if not set(["aurora_cluster_arn", "secret_arn"]).issubset(kwargs.keys()):
                 raise KeyError(f"aurora_cluster_arn and secret_arn arguments are required to use DATA API")
             from .data_api import MySQLConnection as Connection
+        else:
+            from .mysql import Connection
         if "dbname" in kwargs:
             kwargs["db"] = kwargs["dbname"]
             del kwargs["dbname"]
         if "database" in kwargs:
             kwargs["db"] = kwargs["database"]
             del kwargs["database"]
-        from .mysql import Connection
 
     return Connection(**kwargs)
 
