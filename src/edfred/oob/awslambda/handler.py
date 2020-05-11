@@ -24,7 +24,6 @@ class SQLHandler(Handler):
         super().__post_init__()
         self.schema_name = self.environ.get("SCHEMA_NAME")
         self.cluster_jdbc = self.environ.get("CLUSTER_JDBC")
-        self.account_id = self.environ.get("ACCOUNT_ID")
         self.jdbc = AWSJdbc(self.cluster_jdbc)
         self.credentials = SecretValue(os.environ.get("SECRET_CREDENTIALS_ARN"))
         self.cluster_arn = f"arn:aws:rds:{self.jdbc.region}:{self.account_id}:cluster:{self.jdbc.identifier}"
@@ -33,9 +32,9 @@ class SQLHandler(Handler):
             "password": self.credentials.attributes.password,
             "host": self.jdbc.host,
             "port": int(self.jdbc.port),
-            "dbname": self.jdbc.dbname,
+            "database": self.jdbc.database,
         }
         if use_data_api:
-            conn_args['aurora_cluster_arn'] = self.cluster_arn
-            conn_args['secret_arn'] = self.credentials.secret_id
+            conn_args["aurora_cluster_arn"] = self.cluster_arn
+            conn_args["secret_arn"] = self.credentials.secret_id
         self.conn = connect(self.dbtype, use_data_api=use_data_api, **conn_args)

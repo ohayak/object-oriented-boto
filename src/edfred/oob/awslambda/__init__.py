@@ -1,6 +1,7 @@
 import os
 from typing import ClassVar, List, Dict
 from dataclasses import dataclass, field, asdict, InitVar
+from boto3.session import Session
 
 
 @dataclass
@@ -30,15 +31,22 @@ class Handler:
     environ: Dict = None
     aws_lambda_name: str = field(init=False)
     aws_region: str = field(init=False)
+    aws_regaws_account_id: str = field(init=False)
     region: str = field(init=False)
+    account_id: str = field(init=False)
 
     def __post_init__(self):
         """Initialize the handler."""
         if not self.environ:
             self.environ = os.environ.copy()
-        self.aws_lambda_name = self.environ.get("AWS_LAMBDA_FUNCTION_NAME", "Lambda")
+        self.aws_lambda_name = self.environ.get("AWS_LAMBDA_FUNCTION_NAME", "")
         self.aws_region = self.environ.get("AWS_REGION", "")
+        if "AWS_ACCOUNT_ID" not in self.environ:
+            sts = Session().client("sts")
+            self.environ["AWS_ACCOUNT_ID"] = sts.get_caller_identity()["Account"]
+        self.aws_account_id = self.environ.get("AWS_ACCOUNT_ID", "")
         self.region = self.environ.get("REGION", self.aws_region)
+        self.account_id = self.environ.get("ACCOUNT_ID", self.aws_account_id)
 
     def __call__(self, payload, context, **kwargs):
         """Wrap perform(), invoked by AWS Lambda."""

@@ -11,4 +11,4 @@ def test_aws_jdbc():
     assert jdbc.aws_service == "rds"
     assert jdbc.region == "eu-west-1"
     assert jdbc.port == "5432"
-    assert jdbc.dbname == "adm"
+    assert jdbc.database == "adm"

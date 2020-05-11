@@ -44,7 +44,7 @@ class AWSJdbc:
     region: str = field(init=False, default=None)
     aws_service: str = field(init=False, default=None)
     port: str = field(init=False, default=None)
-    dbname: str = field(init=False, default=None)
+    database: str = field(init=False, default=None)
 
     def __post_init__(self):
         regex = r"jdbc:(\w+)://(([\w\d-]+).([\w\d-]+).([\w\d-]+).([\w\d-]+).amazonaws.com):(\d+)/([\w\d-]+)"
@@ -57,4 +57,4 @@ class AWSJdbc:
         self.region = match.group(5)
         self.aws_service = match.group(6)
         self.port = match.group(7)
-        self.dbname = match.group(8)
+        self.database = match.group(8)
