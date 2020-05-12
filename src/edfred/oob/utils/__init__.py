@@ -44,3 +44,25 @@ def archive(src, dest, filename):
 def timestamp(fmt="%Y-%m-%d-%H%M%S"):
     now = datetime.utcnow()
     return now.strftime(fmt)
+
+
+def timeit(f):
+    """
+    Timing function executions
+
+    @timeit
+    def my_function():
+        ...
+    """
+
+    def timed(*args, **kw):
+        ts = time.time()
+        result = f(*args, **kw)
+        te = time.time()
+        print(f"Function: {f.__name__}")
+        print(f"*  args: {args}")
+        print(f"*  kw: {kw}")
+        print(f"*  execution time: {(te-ts)*1000:8.2f} ms")
+        return result
+
+    return timed

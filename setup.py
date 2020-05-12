@@ -49,7 +49,7 @@ setup(
         'autologging'
     ],
     extras_require={
-        'occasional': ['boto3', 'pandas', 'pymysql', 'psycopg2-binary', 'aurora-data-api'],
+        'occasional': ['boto3', 'pandas', 'pymysql', 'psycopg2-binary', 'aurora-data-api', 'pyathena', 'awsglue'],
         'test': [
             'pymysql', 
             'psycopg2-binary',

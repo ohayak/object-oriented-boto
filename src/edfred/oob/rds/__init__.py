@@ -4,32 +4,29 @@ from dataclasses import dataclass, field
 
 def connect(dbtype, use_data_api=False, **kwargs):
     if dbtype not in ["mysql", "pgsql", "redshift"]:
-        raise KeyError(f"dbtype={dbtype} must be `mysql` or `pgsql` or `redshift`")
+        raise KeyError(f"dbtype={dbtype} must be `mysql` or `pgsql` or `redshift` or `athena`")
 
     if dbtype in ["pgsql", "redshift"]:
+        if "db" in kwargs:
+            kwargs["dbname"] = kwargs.pop("db")
+        if "database" in kwargs:
+            kwargs["dbname"] = kwargs.pop("database")
         if use_data_api:
             raise KeyError(f"AWS Aurora Serverless Data API do not support {dbtype}")
-        if "db" in kwargs:
-            kwargs["dbname"] = kwargs["db"]
-            del kwargs["db"]
-        if "database" in kwargs:
-            kwargs["dbname"] = kwargs["database"]
-            del kwargs["database"]
         from .pgsql import Connection
 
     elif dbtype == "mysql":
+        if "dbname" in kwargs:
+            kwargs["db"] = kwargs.pop("dbname")
+        if "database" in kwargs:
+            kwargs["db"] = kwargs.pop("database")
         if use_data_api:
-            if not set(["aurora_cluster_arn", "secret_arn"]).issubset(kwargs.keys()):
-                raise KeyError(f"aurora_cluster_arn and secret_arn arguments are required to use DATA API")
             from .data_api import MySQLConnection as Connection
         else:
             from .mysql import Connection
-        if "dbname" in kwargs:
-            kwargs["db"] = kwargs["dbname"]
-            del kwargs["dbname"]
-        if "database" in kwargs:
-            kwargs["db"] = kwargs["database"]
-            del kwargs["database"]
+
+    elif dbtype == "athena":
+        from .athena import Connection
 
     return Connection(**kwargs)
 

@@ -8,6 +8,7 @@
 - add option to change select query in load_to_s3 function
 - fix regex in AWSJdbc parser
 - Add account_id to Lambda handler
+- Add athena to RDS connection with PyAthena library
 
 0.0.7 (2020-04-21)
 ------------------

@@ -1,4 +1,3 @@
-from time import sleep
 import pymysql
 from .extentions import Base, MySQL
 
