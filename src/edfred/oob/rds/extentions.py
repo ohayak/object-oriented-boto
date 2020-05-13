@@ -50,9 +50,9 @@ class Base:
                 last_query = None
                 with self.cursor() as cur:
                     for stm in statements:
+                        last_query = stm
                         log.debug(stm)
                         cur.execute(stm, **kwargs)
-                        last_query = stm
                 self.commit()
                 log.info("End SQL transaction.")
                 return
@@ -64,7 +64,6 @@ class Base:
                     sleep(retry_delay)
                     continue
                 log.error(f"Retries maxout. Rollback and Raise error")
-                log.error(e)
                 raise e
 
     def get_list_tables(self, schema_name):

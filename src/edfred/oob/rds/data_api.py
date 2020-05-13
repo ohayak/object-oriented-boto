@@ -19,7 +19,7 @@ class Connection(AuroraDataAPIClient):
         """
         args = re.finditer(r"\%\((.*?)\)s", operation)
         for arg in args:
-            operation.replace(arg.group(0), ":" + arg.group(1))
+            operation = operation.replace(arg.group(0), ":" + arg.group(1))
         return super()._prepare_execute_args(operation)
 
 
