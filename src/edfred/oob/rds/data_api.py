@@ -1,6 +1,17 @@
-from aurora_data_api import AuroraDataAPIClient
+from aurora_data_api import AuroraDataAPIClient, AuroraDataAPICursor
 import re
 from .extentions import Base, MySQL, PgSQL
+
+class Cursor(AuroraDataAPICursor):
+
+    def _prepare_execute_args(self, operation):
+        """
+        Named parameters are specified  with :name or %(name)s
+        """
+        args = re.finditer(r"\%\((.*?)\)s", operation)
+        for arg in args:
+            operation = operation.replace(arg.group(0), ":" + arg.group(1))
+        return super()._prepare_execute_args(operation)
 
 
 class Connection(AuroraDataAPIClient):
@@ -13,14 +24,14 @@ class Connection(AuroraDataAPIClient):
             charset=kwargs.get("charset", None),
         )
 
-    def _prepare_execute_args(self, operation):
-        """
-        Named parameters are specified  with :name or %(name)s
-        """
-        args = re.finditer(r"\%\((.*?)\)s", operation)
-        for arg in args:
-            operation = operation.replace(arg.group(0), ":" + arg.group(1))
-        return super()._prepare_execute_args(operation)
+    def cursor(self):
+        cursor = self.cursor()
+        cursor = Cursor(client=self._client,
+                        dbname=self._dbname,
+                        aurora_cluster_arn=self._aurora_cluster_arn,
+                        secret_arn=self._secret_arn,
+                        transaction_id=self._transaction_id)
+        return cursor
 
 
 class MySQLConnection(Connection, Base, MySQL):
