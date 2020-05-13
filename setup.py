@@ -53,6 +53,7 @@ setup(
         'test': [
             'pymysql', 
             'psycopg2-binary',
+            'aurora-data-api',
             'moto',
             'pytest',
             'pytest-html',

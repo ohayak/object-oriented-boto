@@ -12,10 +12,10 @@ class Connection(AuroraDataAPIClient):
             rds_data_client=kwargs.get("rds_data_client", None),
             charset=kwargs.get("charset", None),
         )
-    
+
     def _prepare_execute_args(self, operation):
         """
-        Named parameters are specified  wth :name or %(name)s
+        Named parameters are specified  with :name or %(name)s
         """
         args = re.finditer(r"\%\((.*?)\)s", operation)
         for arg in args:

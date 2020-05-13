@@ -22,8 +22,8 @@ class SQLHandler(Handler):
     def __post_init__(self, use_data_api):
         """Initialize the handler."""
         super().__post_init__()
-        if self.dbtype == 'athena' and self.conn is None:
-            raise KeyError('For Athena connection, provide conn parameter (all other parameters are ignored).')
+        if self.dbtype == "athena" and self.conn is None:
+            raise KeyError("For Athena connection, provide conn parameter (all other parameters are ignored).")
         if not self.conn:
             self.schema_name = self.environ.get("SCHEMA_NAME")
             self.cluster_jdbc = self.environ.get("CLUSTER_JDBC")
