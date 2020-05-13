@@ -3,8 +3,9 @@ from dataclasses import dataclass, field
 
 
 def connect(dbtype, use_data_api=False, **kwargs):
-    if dbtype not in ["mysql", "pgsql", "redshift"]:
-        raise KeyError(f"dbtype={dbtype} must be `mysql` or `pgsql` or `redshift` or `athena`")
+    supported_dbtype = ["mysql", "pgsql", "redshift", "athena"]
+    if dbtype not in supported_dbtype:
+        raise KeyError(f"dbtype must be one of {supported_dbtype}")
 
     if dbtype in ["pgsql", "redshift"]:
         if "db" in kwargs:
@@ -12,8 +13,9 @@ def connect(dbtype, use_data_api=False, **kwargs):
         if "database" in kwargs:
             kwargs["dbname"] = kwargs.pop("database")
         if use_data_api:
-            raise KeyError(f"AWS Aurora Serverless Data API do not support {dbtype}")
-        from .pgsql import Connection
+            from .data_api import PgSQLConnection as Connection
+        else:
+            from .pgsql import Connection
 
     elif dbtype == "mysql":
         if "dbname" in kwargs:

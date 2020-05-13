@@ -1,7 +1,6 @@
 import psycopg2
-from edfred.oob.s3 import S3Object
-from .extentions import Base
+from .extentions import Base, PgSQL
 
 
-class Connection(psycopg2.extensions.connection, Base):
+class Connection(psycopg2.extensions.connection, Base, PgSQL):
     pass

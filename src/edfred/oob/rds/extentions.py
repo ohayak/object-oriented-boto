@@ -248,6 +248,7 @@ class PgSQL:
         ignore_columns=[],
         fields_delimiter=";",
         ignore_lines=1,
+        encoding="utf8",
         extra_options={},
     ):
         s3_url = f"s3://{s3object.bucket_name}/{s3object.key}"
@@ -259,12 +260,17 @@ class PgSQL:
                 file_obj, file_encoding, ignore_lines, columns, fields_delimiter, schema, table
             )
         else:
-            options = dict(format="csv", header="true" if ignore_lines > 0 else "false", delimiter=fields_delimiter)
+            options = dict(
+                format="csv",
+                encoding=encoding,
+                header="true" if ignore_lines > 0 else "false",
+                delimiter=fields_delimiter,
+            )
             options.update(extra_options)
             options_string = ""
             for k, v in options.items():
                 options_string = options_string + "," + k + " " + v
-            stmt = (
+            statement = (
                 f"select aws_s3.table_import_from_s3('\"{schema}\".\"{table}\"', '{','.join(columns)}',"
                 f"'({options_string})',"
                 f"'{s3object.bucket_name}', '{s3object.key}', '{s3object.region}');"
@@ -300,7 +306,7 @@ class PgSQL:
                 LANGUAGE SQL STABLE;
             """
             cur.execute(statement)
-            cur.execute(f"SELECT show_create_table('{schema}', '{table}');")
+            cur.execute(f"SELECT show_create_table('{schema}','{table}');")
             result = cur.fetchone()[0]
         self.commit()
         return result

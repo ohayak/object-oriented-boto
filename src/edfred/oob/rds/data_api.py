@@ -1,6 +1,6 @@
 from aurora_data_api import AuroraDataAPIClient
 import re
-from .extentions import Base, MySQL
+from .extentions import Base, MySQL, PgSQL
 
 
 class Connection(AuroraDataAPIClient):
@@ -24,4 +24,8 @@ class Connection(AuroraDataAPIClient):
 
 
 class MySQLConnection(Connection, Base, MySQL):
+    pass
+
+
+class PgSQLConnection(Connection, Base, PgSQL):
     pass
