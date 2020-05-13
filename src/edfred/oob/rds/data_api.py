@@ -26,11 +26,11 @@ class Connection(AuroraDataAPIClient):
 
     def cursor(self):
         cursor = super().cursor()
-        cursor = Cursor(client=self._client,
-                        dbname=self._dbname,
-                        aurora_cluster_arn=self._aurora_cluster_arn,
-                        secret_arn=self._secret_arn,
-                        transaction_id=self._transaction_id)
+        cursor = Cursor(client=cursor._client,
+                        dbname=cursor._dbname,
+                        aurora_cluster_arn=cursor._aurora_cluster_arn,
+                        secret_arn=cursor._secret_arn,
+                        transaction_id=cursor._transaction_id)
         return cursor
 
 
