@@ -31,7 +31,7 @@ class Handler:
     environ: Dict = None
     aws_lambda_name: str = field(init=False)
     aws_region: str = field(init=False)
-    aws_regaws_account_id: str = field(init=False)
+    aws_account_id: str = field(init=False)
     region: str = field(init=False)
     account_id: str = field(init=False)
 
