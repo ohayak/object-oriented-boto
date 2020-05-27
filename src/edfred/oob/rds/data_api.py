@@ -1,4 +1,4 @@
-from aurora_data_api import AuroraDataAPIClient, AuroraDataAPICursor, logger
+from aurora_data_api import AuroraDataAPIClient, AuroraDataAPICursor, logger, DatabaseError, MySQLErrorCodes
 import re
 import reprlib
 from .extentions import Base, MySQL, PgSQL
@@ -13,6 +13,19 @@ class Cursor(AuroraDataAPICursor):
         for arg in args:
             operation = operation.replace(arg.group(0), ":" + arg.group(1))
         return super()._prepare_execute_args(operation)
+    
+    def _get_database_error(self, original_error):
+        # TODO: avoid SHOW ERRORS if on postgres (it's a useless network roundtrip)
+        try:
+            err_res = self._client.execute_statement(**self._prepare_execute_args("SHOW ERRORS"))
+            err_infos = self._render_response(err_res)["records"]
+            if err_infos and len(err_infos) > 0:
+                err_info = err_infos[-1]
+                return DatabaseError(MySQLErrorCodes(err_info[1]), err_info[2])
+            else:
+                return DatabaseError(original_error)
+        except self._client.exceptions.BadRequestException:
+            return DatabaseError(original_error)
     
     def execute(self, operation, parameters=None, continue_after_timeout=False):
         self._current_response, self._iterator, self._paging_state = None, None, None
