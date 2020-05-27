@@ -42,10 +42,17 @@ class S3Bucket(S3Base):
     def get_object(self, object_key):
         return S3Object(bucket_name=self.name, key=object_key)
 
-    def list_keys(self, prefix=""):
+    def list_keys(self, prefix="", max_keys: int = None) -> List[str]:
         kwargs = {"Bucket": self.name, "Prefix": prefix}
-        object_list = self.client.list_objects_v2(**kwargs).get("Contents", [])
-        return list(o["Key"] for o in object_list)
+        if max_keys is not None:
+            kwargs["MaxKeys"] = min(1000, max_keys)
+        response = self.client.list_objects_v2(**kwargs)
+        keys = list(o["Key"] for o in response.get("Contents", []))
+        while "NextContinuationToken" in response and len(keys) < max_keys:
+            kwargs["ContinuationToken"] = response["NextContinuationToken"]
+            response = self.client.list_objects_v2(**dict(kwargs, ContinuationToken=response["NextContinuationToken"]))
+            keys += list(o["Key"] for o in response.get("Contents", []))
+        return keys
 
     def delete_object(self, key):
         return self.client.delete_object(Bucket=self.name, Key=key)
