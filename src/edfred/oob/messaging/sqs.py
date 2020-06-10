@@ -12,8 +12,8 @@ class SQSBase:
 
 @dataclass
 class SQSMessage(SQSBase):
-    queue_url: str
-    body: str
+    queue_url: str = None
+    body: str = None
     receipt_handle: str = None
     body_md5: str = None
     region: str = None

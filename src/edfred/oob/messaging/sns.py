@@ -12,7 +12,7 @@ class SNSBase:
 
 @dataclass
 class SNSNotification(SNSBase):
-    message: str
+    message: str = None
     subject: str = None
     structure: str = "text"
     timestamp: str = None
@@ -70,7 +70,7 @@ class SNSTopic(SNSBase):
 
 @dataclass
 class SNSSubscription(SNSBase):
-    arn: str
+    arn: str = None
     attributes: Dict = field(init=False)
 
     def __post_init__(self):

@@ -56,10 +56,15 @@ class Handler:
             )
             attributes = payload["ManualCall"].get("Attributes", {})
             environ = payload["ManualCall"].get("Environ", {})
-            self.overwrite_environ(environ)
+            if environ:
+                self.overwrite_environ(environ)
+                self.__post_init__()
             return self.manual_call(event, attributes)
         else:
-            self.overwrite_environ(payload.get("Environ", {}))
+            environ = payload.get("Environ", {})
+            if environ:
+                self.overwrite_environ(environ)
+                self.__post_init__()
             event = self.event_parser(payload, context)
             return self.perform(event)
 

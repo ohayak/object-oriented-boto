@@ -3,8 +3,8 @@ import re
 import reprlib
 from .extentions import Base, MySQL, PgSQL
 
-class Cursor(AuroraDataAPICursor):
 
+class Cursor(AuroraDataAPICursor):
     def _prepare_execute_args(self, operation):
         """
         Named parameters are specified  with :name or %(name)s
@@ -13,7 +13,7 @@ class Cursor(AuroraDataAPICursor):
         for arg in args:
             operation = operation.replace(arg.group(0), ":" + arg.group(1))
         return super()._prepare_execute_args(operation)
-    
+
     def _get_database_error(self, original_error):
         # TODO: avoid SHOW ERRORS if on postgres (it's a useless network roundtrip)
         try:
@@ -26,11 +26,14 @@ class Cursor(AuroraDataAPICursor):
                 return DatabaseError(original_error)
         except self._client.exceptions.BadRequestException:
             return DatabaseError(original_error)
-    
+
     def execute(self, operation, parameters=None, continue_after_timeout=False):
         self._current_response, self._iterator, self._paging_state = None, None, None
-        execute_statement_args = dict(self._prepare_execute_args(operation),
-                                      includeResultMetadata=True, continueAfterTimeout=continue_after_timeout)
+        execute_statement_args = dict(
+            self._prepare_execute_args(operation),
+            includeResultMetadata=True,
+            continueAfterTimeout=continue_after_timeout,
+        )
         if parameters:
             execute_statement_args["parameters"] = self._format_parameter_set(parameters)
         logger.debug("execute %s", reprlib.repr(operation.strip()))
@@ -61,11 +64,13 @@ class Connection(AuroraDataAPIClient):
 
     def cursor(self):
         cursor = super().cursor()
-        cursor = Cursor(client=cursor._client,
-                        dbname=cursor._dbname,
-                        aurora_cluster_arn=cursor._aurora_cluster_arn,
-                        secret_arn=cursor._secret_arn,
-                        transaction_id=cursor._transaction_id)
+        cursor = Cursor(
+            client=cursor._client,
+            dbname=cursor._dbname,
+            aurora_cluster_arn=cursor._aurora_cluster_arn,
+            secret_arn=cursor._secret_arn,
+            transaction_id=cursor._transaction_id,
+        )
         return cursor
 
 

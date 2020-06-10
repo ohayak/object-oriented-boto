@@ -17,19 +17,18 @@ def test_bucket():
 
 
 @mock_s3
-def test_s3():
+def test_s3(tmpdir):
     # TODO: use mock files
     s3 = client("s3", region_name="eu-west-1")
-
     s3.create_bucket(Bucket="my-bucket")
     bucket_manager = S3Bucket(name="my-bucket")
-    with open("/tmp/local.txt", "w") as f:
-        f.write("test")
-
-    bucket_manager.upload_file("/tmp/local.txt", "distant.txt")
+    p = tmpdir.join("local.txt")
+    p.write("test")
+    bucket_manager.upload_file(str(p), "distant.txt")
     obj = bucket_manager.get_object("distant.txt")
-    obj.download_to("/tmp/distant.txt")
-    with open("/tmp/distant.txt", "r") as f:
+    p2 = tmpdir.join("distant.txt")
+    obj.download_to(str(p2))
+    with p2.open("r") as f:
         assert f.read() == "test"
     with obj.download_fileobj() as f:
         assert f.read() == b"test"

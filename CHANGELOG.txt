@@ -1,7 +1,7 @@
 0.0.9 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Lambda Handler : call __post_init__ if manual call of Environ in payload => Init only vars cannot be used in Handler subclass
 
 
 0.0.8 (2020-05-13)

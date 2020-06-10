@@ -10,7 +10,7 @@ from edfred.oob.rds import AWSJdbc, connect
 @dataclass
 class SQLHandler(Handler):
     dbtype: str = "mysql"
-    use_data_api: InitVar[bool] = False
+    use_data_api: bool = False
     conn: object = None
     schema_name: str = field(init=False)
     cluster_jdbc: str = field(init=False)
@@ -19,16 +19,16 @@ class SQLHandler(Handler):
     credentials: str = field(init=False)
     cluster_arn: str = field(init=False)
 
-    def __post_init__(self, use_data_api):
+    def __post_init__(self):
         """Initialize the handler."""
-        super().__post_init__()
+        Handler.__post_init__(self)
         if self.dbtype == "athena" and self.conn is None:
             raise KeyError("For Athena connection, provide conn parameter (all other parameters are ignored).")
         if not self.conn:
             self.schema_name = self.environ.get("SCHEMA_NAME")
             self.cluster_jdbc = self.environ.get("CLUSTER_JDBC")
             self.jdbc = AWSJdbc(self.cluster_jdbc)
-            self.credentials = SecretValue(os.environ.get("SECRET_CREDENTIALS_ARN"))
+            self.credentials = SecretValue(self.environ.get("SECRET_CREDENTIALS_ARN"))
             self.cluster_arn = f"arn:aws:rds:{self.jdbc.region}:{self.account_id}:cluster:{self.jdbc.identifier}"
             conn_args = {
                 "user": self.credentials.attributes.username,
@@ -37,7 +37,7 @@ class SQLHandler(Handler):
                 "port": int(self.jdbc.port),
                 "database": self.jdbc.database,
             }
-            if use_data_api:
+            if self.use_data_api:
                 conn_args["aurora_cluster_arn"] = self.cluster_arn
                 conn_args["secret_arn"] = self.credentials.secret_id
-            self.conn = connect(self.dbtype, use_data_api=use_data_api, **conn_args)
+            self.conn = connect(self.dbtype, use_data_api=self.use_data_api, **conn_args)

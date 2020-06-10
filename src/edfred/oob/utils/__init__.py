@@ -30,15 +30,13 @@ def read(path, loader=None, binary_file=False):
         return loader(fh.read())
 
 
-def archive(src, dest, filename):
-    output = os.path.join(dest, filename)
-    zfh = zipfile.ZipFile(output, "w", zipfile.ZIP_DEFLATED)
-
+def archive(src, dest):
+    zfh = zipfile.ZipFile(dest, "w", zipfile.ZIP_DEFLATED)
     for root, _, files in os.walk(src):
         for file in files:
             zfh.write(os.path.join(root, file))
     zfh.close()
-    return os.path.join(dest, filename)
+    return dest
 
 
 def timestamp(fmt="%Y-%m-%d-%H%M%S"):
