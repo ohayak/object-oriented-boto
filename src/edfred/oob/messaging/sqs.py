@@ -99,7 +99,9 @@ class SQSQueue(SQSBase):
     def number_of_messages(self) -> int:
         return int(self.attributes.approximate_number_of_messages)
 
-    def __receive_message(self, batch_size, visibility_timeout=None, wait_time=0) -> Generator[SQSMessage, None, None]:
+    def __receive_message(
+        self, batch_size: int, visibility_timeout: int, wait_time: int
+    ) -> Generator[SQSMessage, None, None]:
         request_arguments = {
             "QueueUrl": self.url,
             "AttributeNames": ["All"],
@@ -122,7 +124,9 @@ class SQSQueue(SQSBase):
                 receipt_handle=message.get("ReceiptHandle", None),
             )
 
-    def receive_message_batch(self, batch_size, visibility_timeout=None, wait_time=0) -> List[SQSMessage]:
+    def receive_message_batch(
+        self, batch_size: int, visibility_timeout: int = None, wait_time: int = 0
+    ) -> List[SQSMessage]:
         number_of_messages = int(self.number_of_messages)
         messages = []
         while len(messages) < min(batch_size, number_of_messages):
@@ -130,10 +134,10 @@ class SQSQueue(SQSBase):
             messages.extend(list(self.__receive_message(missing, visibility_timeout, wait_time)))
         return messages
 
-    def receive_message(self, visibility_timeout=None, wait_time=0) -> SQSMessage:
+    def receive_message(self, visibility_timeout: int = None, wait_time: int = 0) -> SQSMessage:
         return list(self.__receive_message(1, visibility_timeout, wait_time))[0]
 
-    def send_message(self, body, message_attributes={}, delay: int = None) -> SQSMessage:
+    def send_message(self, body: str, message_attributes: Dict = {}, delay: int = None) -> SQSMessage:
         message = SQSMessage(queue_url=self.url, body=body, message_attributes=message_attributes)
         message.send(delay)
         return message
@@ -176,3 +180,15 @@ class SQSQueue(SQSBase):
                 )
             )
         return response
+
+
+@dataclass
+class SQSQueueFifo(SQSQueue):
+    def send_message(
+        self, body: str, message_group_id: str, message_attributes: Dict = {}, delay: int = None
+    ) -> SQSMessage:
+        message = SQSMessage(
+            queue_url=self.url, body=body, message_attributes=message_attributes, group_id=message_group_id
+        )
+        message.send(delay)
+        return message

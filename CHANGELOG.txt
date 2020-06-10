@@ -8,6 +8,7 @@
 ------------------
 
 - Lambda Handler : call __post_init__ if manual call of Environ in payload => Init only vars cannot be used in Handler subclass
+- Add SQSQueueFifo
 
 
 0.0.8 (2020-05-13)
