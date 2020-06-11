@@ -222,6 +222,8 @@ def lambdalogs(handler):
         logging.getLogger("boto").setLevel(boto_level)
         logging.getLogger("boto3").setLevel(boto_level)
         logging.getLogger("botocore").setLevel(boto_level)
+        logging.getLogger("urllib3").setLevel(boto_level)
+        logging.getLogger("s3transfer").setLevel(boto_level)
 
         return handler(self, event, **kwargs)
 

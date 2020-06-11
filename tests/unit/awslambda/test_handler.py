@@ -29,3 +29,21 @@ def test_sql_handler():
         assert handler.cluster_jdbc == os.environ.get("CLUSTER_JDBC")
         assert handler.account_id == os.environ.get("ACCOUNT_ID")
         assert handler.cluster_arn == "arn:aws:rds:eu-west-1:123456789012:cluster:rds-cluster-id"
+        handler(
+            {
+                "ManualCall": {
+                    "Environ": {
+                        "CLUSTER_JDBC": "jdbc:postgresql://rds-cluster-id.cavpiws4jltu.eu-west-1.rds.amazonaws.com:5432/test"
+                    }
+                }
+            },
+            {},
+        )
+        assert (
+            handler.environ["CLUSTER_JDBC"]
+            == "jdbc:postgresql://rds-cluster-id.cavpiws4jltu.eu-west-1.rds.amazonaws.com:5432/test"
+        )
+        assert (
+            handler.cluster_jdbc
+            == "jdbc:postgresql://rds-cluster-id.cavpiws4jltu.eu-west-1.rds.amazonaws.com:5432/test"
+        )

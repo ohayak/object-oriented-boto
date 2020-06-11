@@ -24,7 +24,10 @@ class SQLHandler(Handler):
         Handler.__post_init__(self)
         if self.dbtype == "athena" and self.conn is None:
             raise KeyError("For Athena connection, provide conn parameter (all other parameters are ignored).")
-        if not self.conn:
+        elif self.dbtype == "custom":
+            if self.conn is None:
+                raise KeyError("For custom connection conn parameter cannot be null.")
+        else:
             self.schema_name = self.environ.get("SCHEMA_NAME")
             self.cluster_jdbc = self.environ.get("CLUSTER_JDBC")
             self.jdbc = AWSJdbc(self.cluster_jdbc)
@@ -41,3 +44,6 @@ class SQLHandler(Handler):
                 conn_args["aurora_cluster_arn"] = self.cluster_arn
                 conn_args["secret_arn"] = self.credentials.secret_id
             self.conn = connect(self.dbtype, use_data_api=self.use_data_api, **conn_args)
+
+    def perform(self, event: Event):
+        pass
