@@ -170,6 +170,7 @@ class MySQL:
         lines_delimiter="\n",
         encoding="utf8",
         overwrite=True,
+        format="CSV HEADER"
     ):
         s3_url = f"s3://{bucket}/{key}"
         if not select_quey:
@@ -179,7 +180,8 @@ class MySQL:
             f"character set {encoding} "
             f"fields terminated by '{fields_delimiter}' "
             f"lines terminated by '{lines_delimiter}' "
-            f"overwrite {'on' if overwrite else 'off'};"
+            f"overwrite {'on' if overwrite else 'off'}"
+            f"format {format};"
         )
         return statement
 
