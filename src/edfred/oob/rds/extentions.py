@@ -180,7 +180,7 @@ class MySQL:
             f"character set {encoding} "
             f"fields terminated by '{fields_delimiter}' "
             f"lines terminated by '{lines_delimiter}' "
-            f"overwrite {'on' if overwrite else 'off'}"
+            f"overwrite {'on' if overwrite else 'off'} "
             f"format {format};"
         )
         return statement
