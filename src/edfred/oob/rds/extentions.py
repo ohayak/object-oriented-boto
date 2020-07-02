@@ -167,9 +167,10 @@ class MySQL:
         table,
         select_quey=None,
         fields_delimiter=";",
-        lines_delimiter="\n",
+        lines_delimiter="\r\n",
         encoding="utf8",
         overwrite=True,
+        format=None
     ):
         s3_url = f"s3://{bucket}/{key}"
         if not select_quey:
@@ -177,6 +178,7 @@ class MySQL:
         statement = (
             f"{select_quey} INTO OUTFILE S3 '{s3_url}' "
             f"character set {encoding} "
+            f"{'format '+format if format else ''} "
             f"fields terminated by '{fields_delimiter}' "
             f"lines terminated by '{lines_delimiter}' "
             f"overwrite {'on' if overwrite else 'off'};"
