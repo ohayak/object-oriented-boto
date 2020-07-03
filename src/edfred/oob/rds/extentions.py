@@ -170,7 +170,7 @@ class MySQL:
         lines_delimiter="\r\n",
         encoding="utf8",
         overwrite=True,
-        format=None
+        format=None,
     ):
         s3_url = f"s3://{bucket}/{key}"
         if not select_quey:
