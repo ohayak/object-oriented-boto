@@ -3,6 +3,7 @@
 
 - Lambda Handler : call __post_init__ if manual call of Environ in payload => Init only vars cannot be used in Handler subclass
 - Add SQSQueueFifo
+- S3 list_keys return all keys in bucket !!! use list_keys_batch  to get liked batchs of all keys
 
 
 0.0.8 (2020-05-13)

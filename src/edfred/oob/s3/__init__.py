@@ -1,4 +1,4 @@
-from typing import List, ClassVar, Tuple, Union, IO
+from typing import List, ClassVar, Tuple, Union, IO, Dict
 from dataclasses import dataclass, InitVar, field, asdict
 from io import BytesIO
 from boto3 import client, Session
@@ -15,6 +15,7 @@ class S3Bucket(S3Base):
     arn: str = None
     name: str = None
     region: str = None
+    __list_keys_args: Dict = field(init=False, default_factory=dict)
 
     def __post_init__(self):
         arn = self.arn
@@ -42,17 +43,30 @@ class S3Bucket(S3Base):
     def get_object(self, object_key):
         return S3Object(bucket_name=self.name, key=object_key)
 
-    def list_keys(self, prefix="", max_keys: int = None) -> List[str]:
-        kwargs = {"Bucket": self.name, "Prefix": prefix}
-        if max_keys is not None:
-            kwargs["MaxKeys"] = min(1000, max_keys)
-        response = self.client.list_objects_v2(**kwargs)
+    def __list_keys(self, list_keys_args, max_keys):
+        response = self.client.list_objects_v2(**list_keys_args)
         keys = list(o["Key"] for o in response.get("Contents", []))
-        while "NextContinuationToken" in response and len(keys) < max_keys:
-            kwargs["ContinuationToken"] = response["NextContinuationToken"]
-            response = self.client.list_objects_v2(**dict(kwargs, ContinuationToken=response["NextContinuationToken"]))
-            keys += list(o["Key"] for o in response.get("Contents", []))
+        if "NextContinuationToken" in response:
+            list_keys_args["ContinuationToken"] = response["NextContinuationToken"]
+        if not max_keys:
+            while "NextContinuationToken" in response:
+                list_keys_args["ContinuationToken"] = response["NextContinuationToken"]
+                response = self.client.list_objects_v2(**dict(list_keys_args))
+                keys += list(o["Key"] for o in response.get("Contents", []))
+        else:
+            while "NextContinuationToken" in response and len(keys) < max_keys:
+                list_keys_args["ContinuationToken"] = response["NextContinuationToken"]
+                response = self.client.list_objects_v2(**dict(list_keys_args))
+                keys += list(o["Key"] for o in response.get("Contents", []))
         return keys
+
+    def list_keys(self, prefix="", max_keys: int = None) -> List[str]:
+        list_keys_args = {"Bucket": self.name, "Prefix": prefix, "MaxKeys": min(1000, max_keys if max_keys else 1000)}
+        return self.__list_keys(list_keys_args, max_keys)
+
+    def list_keys_batch(self, prefix="", max_keys: int = 1000):
+        self.__list_keys_args.update({"Bucket": self.name, "Prefix": prefix, "MaxKeys": min(1000, max_keys)})
+        return self.__list_keys(self.__list_keys_args, max_keys)
 
     def delete_object(self, key):
         return self.client.delete_object(Bucket=self.name, Key=key)
