@@ -1,4 +1,4 @@
-import os
+import os, logging
 from typing import ClassVar, List, Dict
 from dataclasses import dataclass, field, asdict, InitVar
 from boto3.session import Session
@@ -47,6 +47,13 @@ class Handler:
         self.aws_account_id = self.environ.get("AWS_ACCOUNT_ID", "")
         self.region = self.environ.get("REGION", self.aws_region)
         self.account_id = self.environ.get("ACCOUNT_ID", self.aws_account_id)
+
+        boto_level = os.getenv("BOTO_LOG_LEVEL", "WARNING")
+        logging.getLogger("boto").setLevel(boto_level)
+        logging.getLogger("boto3").setLevel(boto_level)
+        logging.getLogger("botocore").setLevel(boto_level)
+        logging.getLogger("urllib3").setLevel(boto_level)
+        logging.getLogger("s3transfer").setLevel(boto_level)
 
     def __call__(self, payload, context, **kwargs):
         """Wrap perform(), invoked by AWS Lambda."""
