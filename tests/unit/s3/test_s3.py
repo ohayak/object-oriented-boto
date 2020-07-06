@@ -62,10 +62,15 @@ def test_list_bucket():
         bucket_manager.upload_file(io.BytesIO(f"File content of {key}".encode()), dest=key)
     assert len(bucket_manager.list_keys()) == 1011
     assert len(bucket_manager.list_keys(max_keys=500)) == 500
-    assert len(bucket_manager.list_keys_batch(max_keys=500)) == 500
-    assert len(bucket_manager.list_keys_batch(max_keys=500)) == 500
-    assert len(bucket_manager.list_keys_batch(max_keys=10)) == 10
-    assert len(bucket_manager.list_keys_batch()) == 1
+
+    it = bucket_manager.list_keys_paginator(max_keys=500)
+    assert len(next(it)) == 500
+    assert len(next(it)) == 500
+    assert len(next(it)) == 11
+
+    for batch in bucket_manager.list_keys_paginator(prefix="prefix2", max_keys=2):
+        assert len(batch) == 2
+
     assert len(bucket_manager.list_keys(max_keys=1011)) == 1011
     assert len(bucket_manager.list_keys(max_keys=2000)) == 1011
     assert len(bucket_manager.list_keys(prefix="prefix")) == 1011

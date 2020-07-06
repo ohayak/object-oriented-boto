@@ -43,30 +43,31 @@ class S3Bucket(S3Base):
     def get_object(self, object_key):
         return S3Object(bucket_name=self.name, key=object_key)
 
-    def __list_keys(self, list_keys_args, max_keys):
+    def _list_keys(self, list_keys_args, max_keys):
         response = self.client.list_objects_v2(**list_keys_args)
         keys = list(o["Key"] for o in response.get("Contents", []))
         if "NextContinuationToken" in response:
-            list_keys_args["ContinuationToken"] = response["NextContinuationToken"]
+            list_keys_args.update({"ContinuationToken": response["NextContinuationToken"]})
+        else:
+            list_keys_args.pop("ContinuationToken", None)
         if not max_keys:
             while "NextContinuationToken" in response:
-                list_keys_args["ContinuationToken"] = response["NextContinuationToken"]
+                list_keys_args.update({"ContinuationToken": response["NextContinuationToken"]})
                 response = self.client.list_objects_v2(**dict(list_keys_args))
                 keys += list(o["Key"] for o in response.get("Contents", []))
         else:
             while "NextContinuationToken" in response and len(keys) < max_keys:
-                list_keys_args["ContinuationToken"] = response["NextContinuationToken"]
+                list_keys_args.update({"ContinuationToken": response["NextContinuationToken"]})
                 response = self.client.list_objects_v2(**dict(list_keys_args))
                 keys += list(o["Key"] for o in response.get("Contents", []))
         return keys
 
     def list_keys(self, prefix="", max_keys: int = None) -> List[str]:
         list_keys_args = {"Bucket": self.name, "Prefix": prefix, "MaxKeys": min(1000, max_keys if max_keys else 1000)}
-        return self.__list_keys(list_keys_args, max_keys)
+        return self._list_keys(list_keys_args, max_keys)
 
-    def list_keys_batch(self, prefix="", max_keys: int = 1000):
-        self.__list_keys_args.update({"Bucket": self.name, "Prefix": prefix, "MaxKeys": min(1000, max_keys)})
-        return self.__list_keys(self.__list_keys_args, max_keys)
+    def list_keys_paginator(self, prefix="", max_keys: int = 1000):
+        return iter(S3BucketPaginator(self, prefix, max_keys))
 
     def delete_object(self, key):
         return self.client.delete_object(Bucket=self.name, Key=key)
@@ -75,6 +76,29 @@ class S3Bucket(S3Base):
         for key in self.list_keys(prefix):
             if prefix in key:
                 self.delete_object(key)
+
+
+class S3BucketPaginator:
+
+    def __init__(self, bucket: 'S3Bucket', prefix: str, max_keys: int):
+        self.bucket = bucket
+        self.prefix = prefix
+        self.max_keys = max_keys
+        self.list_keys_args = None
+        self.done = None
+
+    def __iter__(self):
+        self.done = False
+        self.list_keys_args = {"Bucket": self.bucket.name, "Prefix": self.prefix, "MaxKeys": min(1000, self.max_keys)}
+        return self
+
+    def __next__(self):
+        if self.done:
+            raise StopIteration
+        keys = self.bucket._list_keys(self.list_keys_args, self.max_keys)
+        if "ContinuationToken" not in self.list_keys_args:
+            self.done = True
+        return keys
 
 
 @dataclass

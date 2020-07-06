@@ -1,9 +1,11 @@
-0.0.9 (2020-06-10)
+0.0.9 (2020-07-06)
 ------------------
 
 - Lambda Handler : call __post_init__ if manual call of Environ in payload => Init only vars cannot be used in Handler subclass
+- Supress botocore, boto3, urllib3, s3transfer logs by default in base handler
 - Add SQSQueueFifo
-- S3 list_keys return all keys in bucket !!! use list_keys_batch  to get liked batchs of all keys
+- S3 list_keys return all keys in bucket
+- Add S3 paginator
 
 
 0.0.8 (2020-05-13)
