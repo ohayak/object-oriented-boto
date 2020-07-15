@@ -6,6 +6,7 @@
 - Add SQSQueueFifo
 - S3 list_keys return all keys in bucket
 - Add S3 paginator
+- Add S3 delete objects by batch
 
 
 0.0.8 (2020-05-13)
