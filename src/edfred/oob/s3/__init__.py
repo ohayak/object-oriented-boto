@@ -72,10 +72,19 @@ class S3Bucket(S3Base):
     def delete_object(self, key):
         return self.client.delete_object(Bucket=self.name, Key=key)
 
-    def delete_directory(self, prefix):
-        for key in self.list_keys(prefix):
-            if prefix in key:
-                self.delete_object(key)
+    def delete_objects(self, keys: List[str] = None, prefix: str = None) -> List[Dict]:
+
+        if prefix:
+            keys = self.list_keys(prefix)
+
+        responses = []
+        for batch_no in range(0, len(keys), 1000):
+            responses.append(
+                self.client.delete_objects(
+                    Bucket=self.name, Delete={"Objects": [{"Key": k} for k in keys[batch_no : batch_no + 1000]]}
+                )
+            )
+        return responses
 
 
 class S3BucketPaginator:
