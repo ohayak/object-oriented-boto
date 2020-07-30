@@ -79,8 +79,7 @@ class S3Bucket(S3Base):
 
 
 class S3BucketPaginator:
-
-    def __init__(self, bucket: 'S3Bucket', prefix: str, max_keys: int):
+    def __init__(self, bucket: "S3Bucket", prefix: str, max_keys: int):
         self.bucket = bucket
         self.prefix = prefix
         self.max_keys = max_keys

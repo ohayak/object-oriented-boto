@@ -5,7 +5,7 @@ from edfred.oob.s3 import S3Object
 
 class Base:
     @staticmethod
-    def __parse_header(file_obj, file_encoding, fields_delimiter, columns, ignore_columns):
+    def _parse_header(file_obj, file_encoding, fields_delimiter, columns, ignore_columns):
         if not columns:
             file_obj.seek(0)
             columns = file_obj.readline().decode(file_encoding).split(fields_delimiter)
@@ -14,7 +14,7 @@ class Base:
         return columns
 
     @staticmethod
-    def __load_by_line_from_file_statement(
+    def _load_by_line_from_file_statement(
         file_obj, file_encoding, ignore_lines, columns, fields_delimiter, schema, table
     ):
         columns_string = ",".join(columns)
@@ -135,10 +135,10 @@ class MySQL:
     ):
         s3_url = f"s3://{s3object.bucket_name}/{s3object.key}"
         file_obj = s3object.download_fileobj()
-        columns = Base.__parse_header(file_obj, file_encoding, fields_delimiter, columns, ignore_columns)
+        columns = Base._parse_header(file_obj, file_encoding, fields_delimiter, columns, ignore_columns)
         statement = None
         if split_lines:
-            statement = Base.__load_by_line_from_file_statement(
+            statement = Base._load_by_line_from_file_statement(
                 file_obj, file_encoding, ignore_lines, columns, fields_delimiter, schema, table
             )
         else:
@@ -206,10 +206,10 @@ class MySQL:
         ignore_columns=[],
     ):
         file_obj = open(filepath, "r")
-        columns = Base.__parse_header(file_obj, file_encoding, fields_delimiter, columns, ignore_columns)
+        columns = Base._parse_header(file_obj, file_encoding, fields_delimiter, columns, ignore_columns)
         statement = None
         if split_lines:
-            statement = Base.__load_by_line_from_file_statement(
+            statement = Base._load_by_line_from_file_statement(
                 file_obj, file_encoding, ignore_lines, columns, fields_delimiter, schema, table
             )
         else:
@@ -254,10 +254,10 @@ class PgSQL:
     ):
         s3_url = f"s3://{s3object.bucket_name}/{s3object.key}"
         file_obj = s3object.download_fileobj()
-        columns = Base.__parse_header(file_obj, file_encoding, fields_delimiter, columns, ignore_columns)
+        columns = Base._parse_header(file_obj, file_encoding, fields_delimiter, columns, ignore_columns)
         statement = None
         if split_lines:
-            statement = Base.__load_by_line_from_file_statement(
+            statement = Base._load_by_line_from_file_statement(
                 file_obj, file_encoding, ignore_lines, columns, fields_delimiter, schema, table
             )
         else:
