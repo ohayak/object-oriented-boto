@@ -5,12 +5,10 @@ from edfred.oob.s3 import S3Object
 
 class Base:
     @staticmethod
-    def _parse_header(file_obj, file_encoding, fields_delimiter, columns, ignore_columns):
+    def _parse_header(file_obj, file_encoding, fields_delimiter, columns):
         if not columns:
             file_obj.seek(0)
             columns = file_obj.readline().decode(file_encoding).split(fields_delimiter)
-        # Ignore columns
-        columns = list(set(columns) - set(ignore_columns))
         return columns
 
     @staticmethod
@@ -131,11 +129,10 @@ class MySQL:
         encoding="utf8",
         split_lines=False,
         columns=None,
-        ignore_columns=[],
     ):
         s3_url = f"s3://{s3object.bucket_name}/{s3object.key}"
         file_obj = s3object.download_fileobj()
-        columns = Base._parse_header(file_obj, file_encoding, fields_delimiter, columns, ignore_columns)
+        columns = Base._parse_header(file_obj, file_encoding, fields_delimiter, columns)
         statement = None
         if split_lines:
             statement = Base._load_by_line_from_file_statement(
@@ -203,10 +200,9 @@ class MySQL:
         encoding="utf8",
         split_lines=False,
         columns=None,
-        ignore_columns=[],
     ):
         file_obj = open(filepath, "r")
-        columns = Base._parse_header(file_obj, file_encoding, fields_delimiter, columns, ignore_columns)
+        columns = Base._parse_header(file_obj, file_encoding, fields_delimiter, columns)
         statement = None
         if split_lines:
             statement = Base._load_by_line_from_file_statement(
@@ -246,7 +242,6 @@ class PgSQL:
         file_encoding="utf-8-sig",
         split_lines=False,
         columns=None,
-        ignore_columns=[],
         fields_delimiter=";",
         ignore_lines=1,
         encoding="utf8",
@@ -254,7 +249,7 @@ class PgSQL:
     ):
         s3_url = f"s3://{s3object.bucket_name}/{s3object.key}"
         file_obj = s3object.download_fileobj()
-        columns = Base._parse_header(file_obj, file_encoding, fields_delimiter, columns, ignore_columns)
+        columns = Base._parse_header(file_obj, file_encoding, fields_delimiter, columns)
         statement = None
         if split_lines:
             statement = Base._load_by_line_from_file_statement(
