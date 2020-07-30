@@ -42,7 +42,7 @@ def test_s3(tmpdir):
 
     assert bucket_manager.list_keys() == ["folder/copy.txt"]
 
-    bucket_manager.delete_directory("folder")
+    bucket_manager.delete_objects(prefix="folder/")
 
     assert bucket_manager.list_keys() == []
 
@@ -73,6 +73,17 @@ def test_list_bucket():
 
     assert len(bucket_manager.list_keys(max_keys=1011)) == 1011
     assert len(bucket_manager.list_keys(max_keys=2000)) == 1011
-    assert len(bucket_manager.list_keys(prefix="prefix")) == 1011
-    assert len(bucket_manager.list_keys(prefix="prefix2")) == 10
-    assert len(bucket_manager.list_keys(prefix="prefix2", max_keys=2)) == 2
+    assert len(bucket_manager.list_keys(prefix="prefix/")) == 1001
+    assert len(bucket_manager.list_keys(prefix="prefix2/")) == 10
+    assert len(bucket_manager.list_keys(prefix="prefix2/", max_keys=2)) == 2
+
+    bucket_manager.delete_objects(
+        [f"prefix/file_{i}.txt" for i in range(999)] + [f"prefix2/file_{i}.txt" for i in range(3)]
+    )
+
+    assert len(bucket_manager.list_keys()) == 1011 - 999 - 3
+    assert len(bucket_manager.list_keys("prefix/")) == 2
+    assert len(bucket_manager.list_keys("prefix2/")) == 7
+
+    bucket_manager.delete_objects(prefix="prefix/")
+    assert len(bucket_manager.list_keys("prefix/")) == 0
