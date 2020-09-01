@@ -1,4 +1,4 @@
-from typing import List, ClassVar, Tuple, Union, IO, Dict
+from typing import List, ClassVar, Tuple, Union, IO, Dict, Optional
 from dataclasses import dataclass, InitVar, field, asdict
 from io import BytesIO
 from boto3 import client, Session
@@ -15,7 +15,7 @@ class S3Bucket(S3Base):
     arn: str = None
     name: str = None
     region: str = None
-    __list_keys_args: Dict = field(init=False, default_factory=dict)
+    __list_keys_args: Dict = field(init=False, default_factory=dict, repr=False)
 
     def __post_init__(self):
         arn = self.arn
@@ -33,12 +33,20 @@ class S3Bucket(S3Base):
     def head(self):
         self.client.head_bucket(Bucket=self.name)
 
-    def upload_file(self, file: Union[str, IO[bytes]], dest):
+    def upload_file(
+        self, file: Union[str, IO[bytes]], dest: str, consistent_write=True, wait_delay: int = 5
+    ) -> Optional["S3Object"]:
+        """Upload file/fileobj to destination, blocking option waits for the uploaded file to be available"""
+
         if isinstance(file, str):
             self.client.upload_file(file, self.name, dest)
         else:
             self.client.upload_fileobj(file, self.name, dest)
-        return S3Object(bucket_name=self.name, key=dest)
+
+        if consistent_write:
+            waiter = self.client.get_waiter("object_exists")
+            waiter.wait(Bucket=self.name, Key=dest, WaiterConfig={"Delay": wait_delay})
+            return S3Object(bucket_name=self.name, key=dest)
 
     def get_object(self, object_key):
         return S3Object(bucket_name=self.name, key=object_key)
@@ -72,10 +80,19 @@ class S3Bucket(S3Base):
     def delete_object(self, key):
         return self.client.delete_object(Bucket=self.name, Key=key)
 
-    def delete_directory(self, prefix):
-        for key in self.list_keys(prefix):
-            if prefix in key:
-                self.delete_object(key)
+    def delete_objects(self, keys: List[str] = None, prefix: str = None) -> List[Dict]:
+
+        if prefix:
+            keys = self.list_keys(prefix)
+
+        responses = []
+        for batch_no in range(0, len(keys), 1000):
+            responses.append(
+                self.client.delete_objects(
+                    Bucket=self.name, Delete={"Objects": [{"Key": k} for k in keys[batch_no : batch_no + 1000]]}
+                )
+            )
+        return responses
 
 
 class S3BucketPaginator:

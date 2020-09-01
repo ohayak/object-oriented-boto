@@ -13,7 +13,6 @@ from pyspark import SparkContext
 from pyspark.sql import SparkSession
 
 
-
 @dataclass
 class GlueJob:
     """Base Job."""
@@ -38,12 +37,18 @@ class GlueJob:
 
         args = " ".join(sys.argv[1:])
         options_names = map(lambda x: x.group(1), re.finditer(r"--([\d\w-]*)", args))
-        reserved_names = Job.continuation_options() + Job.job_bookmark_options() + Job.job_bookmark_range_options() + Job.id_params() + Job.encryption_type_options()
+        reserved_names = (
+            Job.continuation_options()
+            + Job.job_bookmark_options()
+            + Job.job_bookmark_range_options()
+            + Job.id_params()
+            + Job.encryption_type_options()
+        )
         for option in set(options_names) - set(reserved_names):
             try:
                 self.arguments[option] = getResolvedOptions(sys.argv, [option])[option]
             except Exception as e:
-                print('Skip argument parsing Error:')
+                print("Skip argument parsing Error:")
                 print(e)
                 continue
         self.job_name = getResolvedOptions(sys.argv, ["JOB_NAME"]).get("JOB_NAME", "")
