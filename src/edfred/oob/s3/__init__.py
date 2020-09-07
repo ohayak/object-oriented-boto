@@ -34,7 +34,7 @@ class S3Bucket(S3Base):
         self.client.head_bucket(Bucket=self.name)
 
     def upload_file(
-        self, file: Union[str, IO[bytes]], dest: str, blocking=True, wait_delay: int = 5
+        self, file: Union[str, IO[bytes]], dest: str, consistent_write=True, wait_delay: int = 5
     ) -> Optional["S3Object"]:
         """Upload file/fileobj to destination, blocking option waits for the uploaded file to be available"""
 
@@ -43,7 +43,7 @@ class S3Bucket(S3Base):
         else:
             self.client.upload_fileobj(file, self.name, dest)
 
-        if blocking:
+        if consistent_write:
             waiter = self.client.get_waiter("object_exists")
             waiter.wait(Bucket=self.name, Key=dest, WaiterConfig={"Delay": wait_delay})
             return S3Object(bucket_name=self.name, key=dest)
