@@ -132,7 +132,7 @@ class S3Object(S3Base):
         key_split = self.key.split("/")
         self.is_folder = self.key.endswith("/")
         self.filename = key_split[-1]
-        self.prefix = key_split[:-1]
+        self.prefix = "/".join(key_split[:-1])
         self.suffix = key_split[-1].split(".")[-1]
         self.s3path = f"s3://{self.bucket_name}/{self.key}"
         self.attributes
