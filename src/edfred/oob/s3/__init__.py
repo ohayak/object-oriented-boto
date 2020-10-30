@@ -121,6 +121,7 @@ class S3BucketPaginator:
 class S3Object(S3Base):
     bucket_name: str = None
     key: str = None
+    s3path: str = field(default=None, init=False)
     region: str = field(default=None, init=False)
     filename: str = field(default=None, init=False)
     prefix: str = field(default=None, init=False)
@@ -133,6 +134,7 @@ class S3Object(S3Base):
         self.filename = key_split[-1]
         self.prefix = key_split[:-1]
         self.suffix = key_split[-1].split(".")[-1]
+        self.s3path = f"s3://{self.bucket_name}/{self.key}"
         self.attributes
 
     @property
