@@ -42,7 +42,6 @@ setup(
     package_dir={'': 'src'},
     packages=find_namespace_packages(where='src', include=['edfred.*']),
     install_requires=[
-        'typing',
         'dataclasses',
         'inflection',
         'namedtupled',
