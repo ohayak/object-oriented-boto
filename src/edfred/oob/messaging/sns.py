@@ -88,6 +88,7 @@ class SNSTopicNotification(SNSNotification):
     topic_arn: str = None
 
     def __post_init__(self):
+        SNSNotification.__post_init__(self)
         if not self.topic_arn:
             raise ValueError("topic_arn must be defined and not None.")
 
