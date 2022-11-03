@@ -2,7 +2,7 @@ import json
 from typing import List, ClassVar, Tuple
 from dataclasses import dataclass, InitVar, field, asdict
 from boto3 import client, Session
-from edfred.oob.utils import underscore_namedtuple
+from oob.utils import underscore_namedtuple
 
 
 @dataclass

@@ -11,37 +11,8 @@ services that are supported.
 
 Quick Start
 -----------
-First, configure your amazon credentials with EDF-RED devops account informations (in e.g. ``~/.aws/credentials``):
 
-.. code-block:: ini
-
-    [edf-mfa-devops-long-term]
-    aws_access_key_id = YOUR_KEY
-    aws_secret_access_key = YOUR_SECRET
-    aws_secret_access_key = YOUR_MFA
-
-    [edf-mfa-devops]
-    assumed_role = False
-
-Then, set up a default region (in e.g. ``~/.aws/config``):
-
-.. code-block:: ini
-
-    [profile edf-mfa-devops-long-term]
-    region = eu-west-1
-    output = text
-
-    [profile edf-mfa-devops]
-    region = eu-west-1
-    output = text
-
-Then, from a shell:
-
-.. code-block:: sh
-
-    $ git config credential.helper "!aws --profile edf-mfa-devops codecommit credential-helper $@"
-    $ git clone https://git-codecommit.eu-west-1.amazonaws.com/v1/repos/edfred-oob-library
-    $ pip install file://path/to/edfred-oob-library
+First, configure your amazon credentials with AWS account informations (in e.g. ``~/.aws/credentials``):
 
 Development
 -----------
@@ -54,8 +25,6 @@ the ``pip install`` defined above:
 
 .. code-block:: sh
 
-    $ git clone https://git-codecommit.eu-west-1.amazonaws.com/v1/repos/edfred-oob-library
-    $ cd edfred-oob-library
     $ tox -e py3
     $ source .tox/py3/activate
 
@@ -68,7 +37,7 @@ it will run all of the unit and functional tests, but you can also specify run i
 
     $ tox
     $ tox -e test -- tests/unit/awslambda/test_event.py
-    $ tox -e test -- --cov=src/edfred/oob/awslambda tests/unit/awslambda
+    $ tox -e test -- --cov=src/oob/awslambda tests/unit/awslambda
 
 Submitting Code
 ~~~~~~~~~~~~~~~

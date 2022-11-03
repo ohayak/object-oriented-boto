@@ -2,7 +2,7 @@ from typing import List, ClassVar, Tuple, Union, IO, Dict, Optional
 from dataclasses import dataclass, InitVar, field, asdict
 from io import BytesIO
 from boto3 import client, Session
-from edfred.oob.utils import underscore_namedtuple
+from oob.utils import underscore_namedtuple
 
 
 @dataclass

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=unused-argument
 """Test base objects."""
-from edfred.oob.awslambda import Handler, Event
+from oob.awslambda import Handler, Event
 import mock
 
 

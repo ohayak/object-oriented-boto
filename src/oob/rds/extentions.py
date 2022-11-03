@@ -1,6 +1,6 @@
 import logging
 from time import sleep
-from edfred.oob.s3 import S3Object
+from oob.s3 import S3Object
 
 
 class Base:

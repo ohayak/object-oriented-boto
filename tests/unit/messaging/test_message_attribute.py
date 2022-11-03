@@ -1,4 +1,4 @@
-from edfred.oob.messaging import MessageAttribute
+from oob.messaging import MessageAttribute
 
 
 def test_message_attribute():

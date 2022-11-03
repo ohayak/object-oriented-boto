@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=unused-argument
 """Test base objects."""
-from edfred.oob.awslambda.event import *
+from oob.awslambda.event import *
 from boto3 import client
 from moto import mock_sqs, mock_sns
 

@@ -1,6 +1,6 @@
 from boto3 import client
 from moto import mock_secretsmanager
-from edfred.oob.secretsmanager import SecretValue
+from oob.secretsmanager import SecretValue
 
 
 @mock_secretsmanager

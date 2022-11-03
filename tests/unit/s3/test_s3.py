@@ -1,4 +1,4 @@
-from edfred.oob.s3 import S3Bucket, S3Object
+from oob.s3 import S3Bucket, S3Object
 from boto3 import client
 from moto import mock_s3
 

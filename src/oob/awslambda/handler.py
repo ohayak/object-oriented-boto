@@ -3,8 +3,8 @@ import inspect
 from typing import ClassVar, List, Generic
 from dataclasses import dataclass, field, asdict, InitVar
 from . import Handler, Event
-from edfred.oob.secretsmanager import SecretValue
-from edfred.oob.rds import AWSJdbc, connect
+from oob.secretsmanager import SecretValue
+from oob.rds import AWSJdbc, connect
 
 
 @dataclass

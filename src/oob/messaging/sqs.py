@@ -1,7 +1,7 @@
 from dataclasses import dataclass, InitVar, field, asdict
 from typing import ClassVar, List, Dict, Tuple, Generator
 from boto3 import client, Session
-from edfred.oob.utils import underscore_namedtuple
+from oob.utils import underscore_namedtuple
 from . import MessageAttribute
 
 

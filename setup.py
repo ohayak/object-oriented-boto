@@ -30,7 +30,7 @@ def file_contents(file_name):
 # ----------------------------------------------------------------------------
 
 setup(
-    name="edfred-oob-library",
+    name="oob-library",
     version=VERSION,
     description="Object Oriented Boto3 library",
     long_description=file_contents("README.rst"),
@@ -38,9 +38,9 @@ setup(
     author="Omar HAYAK",
     author_email="ohayak@quantmetry.com",
     python_requires='>=3.6',
-    url="https://git-codecommit.eu-west-1.amazonaws.com/v1/repos/edfred-oob-library",    
+    url="https://git-codecommit.eu-west-1.amazonaws.com/v1/repos/oob-library",    
     package_dir={'': 'src'},
-    packages=find_namespace_packages(where='src', include=['edfred.*']),
+    packages=find_namespace_packages(where='src', include=['*']),
     install_requires=[
         'typing',
         'dataclasses',

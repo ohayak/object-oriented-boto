@@ -5,10 +5,10 @@ from functools import reduce
 from typing import ClassVar, List, Dict
 from dataclasses import dataclass, field, asdict, InitVar
 from . import Event, Handler
-from edfred.oob.s3 import S3Object, S3Bucket
-from edfred.oob.utils import underscore_namedtuple
-from edfred.oob.messaging.sqs import SQSQueue, SQSMessage
-from edfred.oob.messaging.sns import SNSTopic, SNSSubscription, SNSNotification
+from oob.s3 import S3Object, S3Bucket
+from oob.utils import underscore_namedtuple
+from oob.messaging.sqs import SQSQueue, SQSMessage
+from oob.messaging.sns import SNSTopic, SNSSubscription, SNSNotification
 from urllib.parse import unquote_plus
 
 

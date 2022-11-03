@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=unused-argument
 """Test base objects."""
-from edfred.oob.messaging.sqs import SQSMessage, SQSQueue
-from edfred.oob.utils import underscore_namedtuple
+from oob.messaging.sqs import SQSMessage, SQSQueue
+from oob.utils import underscore_namedtuple
 from boto3 import client
 from moto import mock_sqs
 import os

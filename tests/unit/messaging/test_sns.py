@@ -1,5 +1,5 @@
-from edfred.oob.messaging.sns import SNSTopic, SNSTopicNotification
-from edfred.oob.utils import underscore_namedtuple
+from oob.messaging.sns import SNSTopic, SNSTopicNotification
+from oob.utils import underscore_namedtuple
 from boto3 import client
 from moto import mock_sns
 import os
